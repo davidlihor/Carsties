@@ -2,6 +2,7 @@ using AuctionService.Data;
 using AuctionService.DTOs;
 using AuctionService.Entities;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Carter;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,16 +33,17 @@ public class AuctionsEndpoints : ICarterModule
         return auction == null ? Results.NotFound() : Results.Ok(mapper.Map<AuctionDto>(auction));
     }
 
-    private static async Task<IResult> GetAuctions(
+    private static async Task<IResult> GetAuctions(string date,
         DataContext context,
         IMapper mapper)
     {
-        var auctions = await context.Auctions
-            .Include(x => x.Item)
-            .OrderBy(x => x.Item.Make)
-            .ToListAsync();
-        
-        return Results.Ok(mapper.Map<List<AuctionDto>>(auctions));
+        var query = context.Auctions
+            .OrderBy(x => x.Item.Make).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(date))
+            query = query.Where(x => x.UpdatedAt.CompareTo(DateTime.Parse(date).ToUniversalTime()) > 0);
+
+        return Results.Ok(await query.ProjectTo<AuctionDto>(mapper.ConfigurationProvider).ToListAsync());
     }
 
     private static async Task<IResult> CreateAuction(

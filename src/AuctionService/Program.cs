@@ -28,7 +28,7 @@ app.UseAuthorization();
 
 try
 {
-    DbInitializer.InitDB(app);
+    DbInitializer.InitDb(app);
 }
 catch (Exception e)
 {
