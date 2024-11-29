@@ -6,11 +6,11 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgrespw
       - POSTGRES_DB=auctions
-    restart: always
     ports:
       - 5400:5432
     volumes:
       - /var/lib/postgresql/data/
+
   mongo:
     container_name: MongoDB
     image: mongo
@@ -21,3 +21,10 @@ services:
       - 5401:27017
     volumes:
       - /data/db
+
+  rabbitmq:
+    container_name: RabbitMQ
+    image: rabbitmq:3-management-alpine
+    ports:
+      - 5670:5672
+      - 15670:15672

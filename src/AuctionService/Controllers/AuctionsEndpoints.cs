@@ -4,6 +4,8 @@ using AuctionService.Entities;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Carter;
+using Contracts;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuctionService.Controllers;
@@ -14,11 +16,35 @@ public class AuctionsEndpoints : ICarterModule
     { 
         var group = app.MapGroup("api/auctions");
 
-        group.MapGet("", GetAuctions);
-        group.MapGet("{id:guid}", GetAuction);
+        group.MapGet("", GetAuctions).WithName("GetAuctions");
+        group.MapGet("{id:guid}", GetAuction).WithName("GetAuction");
         group.MapPost("", CreateAuction);
         group.MapPut("{id:guid}", UpdateAuction);
         group.MapDelete("{id:guid}", DeleteAuction);
+    }
+
+    private static async Task<IResult> CreateAuction(
+        CreateAuctionDto request, 
+        DataContext context,
+        IMapper mapper,
+        IPublishEndpoint publishEndpoint)
+    {
+        var auction = mapper.Map<Auction>(request);
+        // userId
+        auction.Seller = "test";
+        
+        context.Auctions.Add(auction);
+        
+        var newAuction = mapper.Map<AuctionDto>(auction);
+        
+        await publishEndpoint.Publish(mapper.Map<AuctionCreated>(newAuction));
+        
+        var result = await context.SaveChangesAsync() > 0;
+
+
+        return result ?
+            Results.CreatedAtRoute(nameof(GetAuction), new { auction.Id }, newAuction) :
+            Results.BadRequest("Could not save changes to DB");
     }
 
     private static async Task<IResult> GetAuction(
@@ -46,26 +72,11 @@ public class AuctionsEndpoints : ICarterModule
         return Results.Ok(await query.ProjectTo<AuctionDto>(mapper.ConfigurationProvider).ToListAsync());
     }
 
-    private static async Task<IResult> CreateAuction(
-        CreateAuctionDto request, 
-        DataContext context,
-        IMapper mapper)
-    {
-        var auction = mapper.Map<Auction>(request);
-        // userId
-        auction.Seller = "test";
-        context.Auctions.Add(auction);
-        var result = await context.SaveChangesAsync() > 0;
-        
-        return result ? 
-            Results.CreatedAtRoute(nameof(GetAuction), new {id = auction.Id}, mapper.Map<AuctionDto>(auction)) :
-            Results.BadRequest("Could not save changes to the DB");
-    }
-
     private static async Task<IResult> UpdateAuction(
         UpdateAuctionDto request,
         DataContext context,
-        IMapper mapper, Guid id)
+        IMapper mapper, Guid id,
+        IPublishEndpoint publishEndpoint)
     {
         var auction = await context.Auctions.Include(x => x.Item)
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -80,13 +91,16 @@ public class AuctionsEndpoints : ICarterModule
         auction.Item.Year = request.Year ?? auction.Item.Year;
         //auction = mapper.Map<Auction>(request);
         
+        await publishEndpoint.Publish(mapper.Map<AuctionUpdated>(auction));
+        
         var result = await context.SaveChangesAsync() > 0;
         
-        return result ? Results.Ok() : Results.BadRequest("Could not save changes to the DB");
+        return result ? Results.Ok() : Results.BadRequest("Could not save changes to DB");
     }
 
     private static async Task<IResult> DeleteAuction(
-        DataContext context, Guid id)
+        DataContext context, Guid id,
+        IPublishEndpoint publishEndpoint)
     {
         var auction = await context.Auctions.FindAsync(id);
         
@@ -94,8 +108,11 @@ public class AuctionsEndpoints : ICarterModule
         
         //userId
         context.Auctions.Remove(auction);
+        
+        await publishEndpoint.Publish(new AuctionDeleted { Id = auction.Id });
+        
         var result = await context.SaveChangesAsync() > 0;
         
-        return result ? Results.Ok() : Results.BadRequest("Could not save changes to the DB");
+        return result ? Results.Ok() : Results.BadRequest("Could not save changes to DB");
     }
 }
