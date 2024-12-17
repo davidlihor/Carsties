@@ -11,7 +11,7 @@ services:
     volumes:
       - /var/lib/postgresql/data/
 
-  mongo:
+  mongodb:
     container_name: MongoDB
     image: mongo
     environment:
@@ -28,3 +28,66 @@ services:
     ports:
       - 5670:5672
       - 15670:15672
+  
+  auction-svc:
+    container_name: Auction.API
+    image: david/auction-svc:latest
+    build:
+      context: .
+      dockerfile: src/AuctionService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - RabbitMQ__Host=rabbitmq
+      - ConnectionStrings__Database=Server=postgres;User Id=postgres;Password=postgrespw;Database=auctions
+      - IdentityServerUrl=http://identity-svc
+    ports:
+      - 7000:80
+    depends_on:
+      - postgres
+      - rabbitmq
+  
+  search-svc:
+    container_name: Search.API
+    image: david/search-svc:latest
+    build:
+      context: .
+      dockerfile: src/SearchService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - RabbitMQ__Host=rabbitmq
+      - ConnectionStrings__MongoDB=mongodb://root:mongopw@mongodb
+      - AuctionServiceUrl=http://auction-svc
+    ports:
+      - 7001:80
+    depends_on:
+      - mongodb
+      - rabbitmq
+
+  gateway-svc:
+    container_name: Gateway
+    image: david/gateway-svc:latest
+    build:
+      context: .
+      dockerfile: src/GatewayService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - 7002:80
+      
+  identity-svc:
+    container_name: Identity
+    image: david/identity-svc:latest
+    build:
+      context: .
+      dockerfile: src/IdentityService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Server=postgres;User Id=postgres;Password=postgrespw;Database=identity
+    ports:
+      - 5001:80
+    depends_on:
+      - postgres

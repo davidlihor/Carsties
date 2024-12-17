@@ -4,7 +4,6 @@ using Carter;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,20 +16,20 @@ builder.Services.AddDbContext<DataContext>(options =>
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddMassTransit(options =>
 {
-    options.AddConsumers(typeof(Program).Assembly);
-    options.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("auction", false));
     options.AddEntityFrameworkOutbox<DataContext>(o =>
     {
         o.QueryDelay = TimeSpan.FromSeconds(10);
         o.UsePostgres();
         o.UseBusOutbox();
     });
+    options.AddConsumers(typeof(Program).Assembly);
+    options.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("auction", false));
     options.UsingRabbitMq((context, config) =>
     {
-        config.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), host =>
+        config.Host(builder.Configuration["RabbitMQ:Host"], "/", host =>
         {
-            host.Username(builder.Configuration["MessageBroker:UserName"]!);
-            host.Password(builder.Configuration["MessageBroker:Password"]!);
+            host.Username(builder.Configuration.GetValue("RabbitMQ:UserName", "guest"));
+            host.Password(builder.Configuration.GetValue("RabbitMQ:Password", "guest"));
         });
         config.ConfigureEndpoints(context);
     });
@@ -48,14 +47,16 @@ builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>();
-var app = builder.Build();
-app.MapGraphQL();
 
-app.MapControllers();
-app.MapCarter();
+var app = builder.Build();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllers();
+
+app.MapCarter();
+app.MapGraphQL();
 
 try
 {

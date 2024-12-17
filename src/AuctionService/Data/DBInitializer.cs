@@ -5,7 +5,7 @@ namespace AuctionService.Data;
 
 public class DbInitializer
 {
-    public static void InitDb(WebApplication app)
+    public static async void InitDb(WebApplication app)
     {
         using var scope = app.Services.CreateScope();
 
@@ -15,7 +15,7 @@ public class DbInitializer
     private static void SeedData(DataContext context)
     {
         context.Database.Migrate();
-
+        
         if (context.Auctions.Any())
         {
             Console.WriteLine("Already have data - no need to seed");

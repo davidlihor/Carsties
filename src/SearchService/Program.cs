@@ -13,26 +13,27 @@ builder.Services.AddHttpClient<AuctionServiceHttpClient>().AddPolicyHandler(GetP
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddMassTransit(options =>
 {
-    options.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("search", false));
     options.AddConsumers(typeof(Program).Assembly);
-    options.UsingRabbitMq((context, cfg) =>
+    options.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("search", false));
+    options.UsingRabbitMq((context, config) =>
     {
-        cfg.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), host =>
+        config.Host(builder.Configuration["RabbitMQ:Host"], "/", host =>
         {
-            host.Username(builder.Configuration["MessageBroker:UserName"]!);
-            host.Password(builder.Configuration["MessageBroker:Password"]!);
+            host.Username(builder.Configuration.GetValue("RabbitMQ:UserName", "guest"));
+            host.Password(builder.Configuration.GetValue("RabbitMQ:Password", "guest"));
         });
-        cfg.ReceiveEndpoint("search-auction-created", e =>
+        config.ReceiveEndpoint("search-auction-created", e =>
         {
             e.UseMessageRetry(r => r.Interval(5, 5));
             e.ConfigureConsumer<AuctionCreatedConsumer>(context);
         });
-        cfg.ConfigureEndpoints(context);
+        config.ConfigureEndpoints(context);
     });
 });
 
 var app = builder.Build();
 
+//app.UseAuthorization();
 app.MapControllers();
 
 try
@@ -45,7 +46,9 @@ catch (Exception e)
 }
 
 app.Run();
-static IAsyncPolicy<HttpResponseMessage> GetPolicy()
-    => HttpPolicyExtensions.HandleTransientHttpError()
-        .OrResult(msg => msg.StatusCode == HttpStatusCode.NotFound)
-        .WaitAndRetryForeverAsync(_ => TimeSpan.FromSeconds(3));
+
+//return;
+static IAsyncPolicy<HttpResponseMessage> GetPolicy() => HttpPolicyExtensions
+    .HandleTransientHttpError()
+    .OrResult(msg => msg.StatusCode == HttpStatusCode.NotFound)
+    .WaitAndRetryForeverAsync(_ => TimeSpan.FromSeconds(3));
