@@ -7,6 +7,7 @@ using Carter;
 using Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace AuctionService.Controllers;
 
@@ -24,19 +25,26 @@ public class AuctionsEndpoints : ICarterModule
     }
 
     private static async Task<IResult> CreateAuction(
-        CreateAuctionDto request, 
+        CreateAuctionDto request,
+        HybridCache cache,
         DataContext context,
         IMapper mapper,
         HttpContext httpContext,
-        IPublishEndpoint publishEndpoint)
+        IPublishEndpoint publishEndpoint,
+        CancellationToken cancellationToken)
     {
         var auction = mapper.Map<Auction>(request);
         auction.Seller = httpContext.User.Identity.Name;
         context.Auctions.Add(auction);
         
         var newAuction = mapper.Map<AuctionDto>(auction);
-        await publishEndpoint.Publish(mapper.Map<AuctionCreated>(newAuction));
-        var result = await context.SaveChangesAsync() > 0;
+        
+        await cache.SetAsync($"auctions-{auction.Id}", newAuction, 
+            tags: ["auctions"], 
+            cancellationToken: cancellationToken);
+        
+        await publishEndpoint.Publish(mapper.Map<AuctionCreated>(newAuction), cancellationToken);
+        var result = await context.SaveChangesAsync(cancellationToken) > 0;
         
         return result ? 
             Results.CreatedAtRoute(nameof(GetAuction), new { auction.Id }, newAuction) : 
@@ -44,18 +52,27 @@ public class AuctionsEndpoints : ICarterModule
     }
 
     private static async Task<IResult> GetAuction(
+        HybridCache cache,
         DataContext context, 
-        IMapper mapper, 
-        Guid id)
+        IMapper mapper, Guid id,
+        CancellationToken cancellationToken)
     {
-        var auction = await context.Auctions
-            .Include(x => x.Item)
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var cachedAuction = await cache.GetOrCreateAsync($"auctions-{id}", async factory =>
+        { 
+            var auction = await context.Auctions
+                .Include(x => x.Item)
+                .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         
-        return auction == null ? Results.NotFound() : Results.Ok(mapper.Map<AuctionDto>(auction));
+            return mapper.Map<AuctionDto>(auction);
+        },
+        tags: ["auctions"],
+        cancellationToken: cancellationToken);
+        
+        return cachedAuction is null ? Results.NotFound() : Results.Ok(cachedAuction);
     }
 
-    private static async Task<IResult> GetAuctions(string date,
+    private static async Task<IResult> GetAuctions(
+        string date,
         DataContext context,
         IMapper mapper)
     {
@@ -69,15 +86,16 @@ public class AuctionsEndpoints : ICarterModule
     }
 
     private static async Task<IResult> UpdateAuction(
+        HybridCache cache, Guid id,
         UpdateAuctionDto request,
         DataContext context,
         IMapper mapper,
-        Guid id,
         HttpContext httpContext,
-        IPublishEndpoint publishEndpoint)
+        IPublishEndpoint publishEndpoint,
+        CancellationToken cancellationToken)
     {
         var auction = await context.Auctions.Include(x => x.Item)
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         
         if(auction is null) return Results.NotFound();
         if(auction.Seller != httpContext.User.Identity.Name) return Results.Forbid();
@@ -88,28 +106,35 @@ public class AuctionsEndpoints : ICarterModule
         auction.Item.Mileage = request.Mileage ?? auction.Item.Mileage;
         auction.Item.Year = request.Year ?? auction.Item.Year;
         
-        await publishEndpoint.Publish(mapper.Map<AuctionUpdated>(auction));
-        var result = await context.SaveChangesAsync() > 0;
+        await cache.SetAsync($"auctions-{auction.Id}",
+            mapper.Map<AuctionDto>(auction), 
+            tags: ["auctions"], 
+            cancellationToken: cancellationToken);
+        
+        await publishEndpoint.Publish(mapper.Map<AuctionUpdated>(auction), cancellationToken);
+        var result = await context.SaveChangesAsync(cancellationToken) > 0;
         
         return result ? Results.Ok() : Results.BadRequest("Could not save changes to DB");
     }
 
     private static async Task<IResult> DeleteAuction(
-        DataContext context,
+        DataContext context, Guid id,
         HttpContext httpContext,
-        Guid id,
-        IPublishEndpoint publishEndpoint)
+        HybridCache cache,
+        IPublishEndpoint publishEndpoint,
+        CancellationToken cancellationToken)
     {
-        var auction = await context.Auctions.FindAsync(id);
+        var auction = await context.Auctions.FindAsync([id], cancellationToken);
         
         if(auction is null) return Results.NotFound();
         if(auction.Seller != httpContext.User.Identity.Name) return Results.Forbid();
         
         context.Auctions.Remove(auction);
+        await cache.RemoveAsync($"auctions-{id}", cancellationToken);
         
-        await publishEndpoint.Publish(new AuctionDeleted { Id = auction.Id });
-        var result = await context.SaveChangesAsync() > 0;
+        await publishEndpoint.Publish(new AuctionDeleted { Id = auction.Id }, cancellationToken);
+        var result = await context.SaveChangesAsync(cancellationToken) > 0;
         
-        return result ? Results.Ok() : Results.BadRequest("Could not save changes to DB");
+        return result ? Results.NoContent() : Results.BadRequest("Could not save changes to DB");
     }
 }

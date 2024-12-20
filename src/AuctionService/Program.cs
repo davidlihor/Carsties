@@ -4,6 +4,7 @@ using Carter;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,21 @@ builder.Services.AddCarter();
 builder.Services.AddDbContext<DataContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("Database"));
+});
+#pragma warning disable EXTEXP0018
+builder.Services.AddHybridCache(options =>
+{
+    options.DefaultEntryOptions = new HybridCacheEntryOptions
+    {
+        LocalCacheExpiration = TimeSpan.FromMinutes(5),
+        Expiration = TimeSpan.FromMinutes(5)
+    };
+});
+#pragma warning restore EXTEXP0018
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = "auction-service";
 });
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddMassTransit(options =>

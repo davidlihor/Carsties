@@ -29,6 +29,12 @@ services:
       - 5670:5672
       - 15670:15672
   
+  redis-cache:
+    image: redis
+    container_name: Redis
+    ports:
+      - 6379:6379
+  
   auction-svc:
     container_name: Auction.API
     image: david/auction-svc:latest
@@ -40,6 +46,7 @@ services:
       - ASPNETCORE_URLS=http://+:80
       - RabbitMQ__Host=rabbitmq
       - ConnectionStrings__Database=Server=postgres;User Id=postgres;Password=postgrespw;Database=auctions
+      - ConnectionStrings__Redis=redis-cache
       - IdentityServerUrl=http://identity-svc
     ports:
       - 7000:80
