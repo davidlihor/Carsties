@@ -1,4 +1,4 @@
-using AuctionService.Entities;
+using AuctionService.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuctionService.Data;
@@ -8,13 +8,12 @@ public class DbInitializer
     public static async void InitDb(WebApplication app)
     {
         using var scope = app.Services.CreateScope();
-
-        SeedData(scope.ServiceProvider.GetRequiredService<DataContext>());
+        await SeedData(scope.ServiceProvider.GetRequiredService<DataContext>());
     }
 
-    private static void SeedData(DataContext context)
+    private static async Task SeedData(DataContext context)
     {
-        context.Database.Migrate();
+        await context.Database.MigrateAsync();
         
         if (context.Auctions.Any())
         {
@@ -184,7 +183,7 @@ public class DbInitializer
             }
         };
         
-        context.AddRange(auctions);
-        context.SaveChangesAsync();
+        await context.AddRangeAsync(auctions);
+        await context.SaveChangesAsync();
     }
 }

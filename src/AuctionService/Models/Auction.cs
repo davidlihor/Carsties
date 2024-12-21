@@ -1,4 +1,4 @@
-namespace AuctionService.Entities;
+namespace AuctionService.Models;
 
 public class Auction
 {

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AuctionService.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20241129122427_Outbox")]
-    partial class Outbox
+    [Migration("20241221184250_InitCreate")]
+    partial class InitCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace AuctionService.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("AuctionService.Entities.Auction", b =>
+            modelBuilder.Entity("AuctionService.Models.Auction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -63,7 +63,7 @@ namespace AuctionService.Migrations
                     b.ToTable("Auctions");
                 });
 
-            modelBuilder.Entity("AuctionService.Entities.Item", b =>
+            modelBuilder.Entity("AuctionService.Models.Item", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -266,11 +266,11 @@ namespace AuctionService.Migrations
                     b.ToTable("OutboxState");
                 });
 
-            modelBuilder.Entity("AuctionService.Entities.Item", b =>
+            modelBuilder.Entity("AuctionService.Models.Item", b =>
                 {
-                    b.HasOne("AuctionService.Entities.Auction", "Auction")
+                    b.HasOne("AuctionService.Models.Auction", "Auction")
                         .WithOne("Item")
-                        .HasForeignKey("AuctionService.Entities.Item", "AuctionId")
+                        .HasForeignKey("AuctionService.Models.Item", "AuctionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -289,7 +289,7 @@ namespace AuctionService.Migrations
                         .HasPrincipalKey("MessageId", "ConsumerId");
                 });
 
-            modelBuilder.Entity("AuctionService.Entities.Auction", b =>
+            modelBuilder.Entity("AuctionService.Models.Auction", b =>
                 {
                     b.Navigation("Item");
                 });

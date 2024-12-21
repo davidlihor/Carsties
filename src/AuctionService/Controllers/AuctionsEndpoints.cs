@@ -1,6 +1,6 @@
 using AuctionService.Data;
 using AuctionService.DTOs;
-using AuctionService.Entities;
+using AuctionService.Models;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Carter;
@@ -43,7 +43,7 @@ public class AuctionsEndpoints : ICarterModule
             tags: ["auctions"], 
             cancellationToken: cancellationToken);
         
-        await publishEndpoint.Publish(mapper.Map<AuctionCreated>(newAuction), cancellationToken);
+        await publishEndpoint.Publish(mapper.Map<AuctionCreated>(auction), cancellationToken);
         var result = await context.SaveChangesAsync(cancellationToken) > 0;
         
         return result ? 

@@ -1,5 +1,5 @@
 using AuctionService.Data;
-using AuctionService.Entities;
+using AuctionService.Models;
 using Contracts;
 using MassTransit;
 

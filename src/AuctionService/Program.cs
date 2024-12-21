@@ -1,6 +1,7 @@
 using AuctionService.Data;
-using AuctionService.GraphQL;
+using AuctionService.GraphQL.Auctions;
 using Carter;
+using HotChocolate.AspNetCore.Voyager;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +28,7 @@ builder.Services.AddHybridCache(options =>
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
-    options.InstanceName = "auction-service";
+    options.InstanceName = "AuctionService";
 });
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddMassTransit(options =>
@@ -61,8 +62,15 @@ builder.Services.AddAuthorization();
 
 builder.Services
     .AddGraphQLServer()
-    .AddQueryType<Query>()
-    .AddMutationType<Mutation>();
+    .AddQueryType<AuctionQuery>()
+    .AddMutationType<AuctionMutation>()
+    .AddSubscriptionType<AuctionSubscription>()
+    .AddType<AuctionType>()
+    .AddProjections()
+    .AddFiltering()
+    .AddSorting()
+    .AddInMemorySubscriptions()
+    .AddAuthorization();
 
 var app = builder.Build();
 
@@ -73,6 +81,8 @@ app.MapControllers();
 
 app.MapCarter();
 app.MapGraphQL();
+app.MapNitroApp();
+app.UseVoyager("/graphql", "/ui/voyager");
 
 try
 {

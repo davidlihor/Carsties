@@ -18,7 +18,7 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=mongopw
     ports:
-      - 5401:27017
+      - 27017:27017
     volumes:
       - /data/db
 
@@ -26,12 +26,12 @@ services:
     container_name: RabbitMQ
     image: rabbitmq:3-management-alpine
     ports:
-      - 5670:5672
-      - 15670:15672
+      - 5672:5672
+      - 15672:15672
   
   redis-cache:
-    image: redis
     container_name: Redis
+    image: redis
     ports:
       - 6379:6379
   

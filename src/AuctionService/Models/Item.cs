@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AuctionService.Entities;
+namespace AuctionService.Models;
 
 [Table("Items")]
 public class Item
