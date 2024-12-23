@@ -1,6 +1,6 @@
 "use client"
 import {useState} from "react";
-import {updateAuctionTest} from "@/app/actions/Action";
+import {updateAuctionTest} from "@/app/actions/AuctionActions";
 import {Button} from "flowbite-react";
 
 export default function AuthTest() {
@@ -18,7 +18,7 @@ export default function AuthTest() {
 
     return (
         <div className="flex items-center gap-4">
-            <Button outline isProcessing={loading} onClick={update}>
+            <Button color={"blue"} isProcessing={loading} onClick={update}>
                 Test auth
             </Button>
             <div>

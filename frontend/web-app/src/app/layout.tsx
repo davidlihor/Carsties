@@ -3,6 +3,7 @@ import "@/app/globals.css";
 import Navbar from "@/app/nav/Navbar";
 import React from "react";
 import ReduxProvider from "@/app/redux/provider";
+import ToasterProvider from "@/app/components/Toaster";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <body>
       <ReduxProvider>
+          <ToasterProvider />
           <Navbar />
           <main className="container mx-auto px-5 pt-10">
               {children}

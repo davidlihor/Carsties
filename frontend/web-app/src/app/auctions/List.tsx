@@ -3,7 +3,7 @@ import AuctionCard from "@/app/auctions/AuctionCard";
 import AppPagination from "@/app/components/AppPagination";
 import {useEffect, useState} from "react";
 import {Auction, PagedResult} from "@/app/types";
-import {getData} from "@/app/actions/Action";
+import {getData} from "@/app/actions/AuctionActions";
 import Filters from "@/app/auctions/Filters";
 import {useDispatch, useSelector} from "react-redux";
 import {selectParams, setParams} from "@/app/redux/pageSlice";
@@ -36,6 +36,7 @@ export default function List() {
             ):(
                 <>
                     <div className={`grid gap-6 ${list ? "" : "grid-cols-4"}`}>
+
                         {data.results.map(auction => (
                             <AuctionCard auction={auction} key={auction.id}/>
                         ))}

@@ -53,6 +53,7 @@ services:
     depends_on:
       - postgres
       - rabbitmq
+      - redis-cache
   
   search-svc:
     container_name: Search.API

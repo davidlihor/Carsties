@@ -31,4 +31,6 @@ export type Page = {
     searchValue: string
     orderBy: string
     filterBy: string
+    seller?: string
+    winner?: string
 }

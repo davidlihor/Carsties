@@ -9,33 +9,26 @@ const initialState: Page = {
     searchTerm: "",
     searchValue: "",
     orderBy: "make",
-    filterBy: "live"
+    filterBy: "live",
+    seller: "",
+    winner: "",
 }
 
 const pageSlice = createSlice({
     name: "page",
     initialState,
     reducers: {
-        setParams: (state, payload: PayloadAction<Partial<Page>>) => {
-            state.pageNumber = payload.payload.pageNumber || 1
-            if(payload.payload.pageSize) state.pageSize = payload.payload.pageSize
-            if(payload.payload.pageCount) state.pageCount = payload.payload.pageCount
-            if(payload.payload.searchTerm) state.searchTerm = payload.payload.searchTerm
-            if(payload.payload.orderBy) state.orderBy = payload.payload.orderBy
-            if(payload.payload.filterBy) state.filterBy = payload.payload.filterBy
+        setParams: (state, action: PayloadAction<Partial<Page>>) => {
+            if(action.payload.pageNumber){
+                return {...state, ...action.payload}
+            }else{
+                return {...state, ...action.payload, pageNumber: 1}
+            }
         },
         setSearch: (state, payload: PayloadAction<string>) => {
             state.searchValue = payload.payload
         },
-        reset: (state) => {
-            state.pageNumber = 1
-            state.pageSize = 12
-            state.pageCount = 1
-            state.searchTerm = ""
-            state.searchValue = ""
-            state.orderBy = "make"
-            state.filterBy = "live"
-        }
+        reset: () => initialState,
     }
 })
 

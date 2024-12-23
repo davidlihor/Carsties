@@ -114,7 +114,7 @@ public class AuctionsEndpoints : ICarterModule
         await publishEndpoint.Publish(mapper.Map<AuctionUpdated>(auction), cancellationToken);
         var result = await context.SaveChangesAsync(cancellationToken) > 0;
         
-        return result ? Results.Ok() : Results.BadRequest("Could not save changes to DB");
+        return result ? Results.NoContent() : Results.BadRequest("Could not save changes to DB");
     }
 
     private static async Task<IResult> DeleteAuction(

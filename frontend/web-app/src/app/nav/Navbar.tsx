@@ -10,7 +10,7 @@ export default async function Navbar() {
     <header className="sticky top-0 z-50 flex justify-between bg-white/70 backdrop-blur-sm p-3 items-center text-gray-800 shadow-md">
       <Logo />
       <Search />
-      {session ? (<UserActions session={session} />) : (<LoginButton />)}
+      {session ? (<UserActions user={session.user} />) : (<LoginButton />)}
     </header>
   )
 }
