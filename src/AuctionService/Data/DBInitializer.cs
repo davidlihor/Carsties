@@ -29,7 +29,7 @@ public class DbInitializer
                 ReservePrice = 20000,
                 Seller = "bob",
                 AuctionEnd = DateTime.UtcNow.AddDays(10),
-                Item = new Item
+                Product = new Product
                 {
                     Make = "Ford",
                     Model = "GT",
@@ -45,7 +45,7 @@ public class DbInitializer
                 ReservePrice = 90000,
                 Seller = "alice",
                 AuctionEnd = DateTime.UtcNow.AddDays(60),
-                Item = new Item
+                Product = new Product
                 {
                     Make = "Bugatti",
                     Model = "Veyron",
@@ -60,7 +60,7 @@ public class DbInitializer
                 Status = Status.Live,
                 Seller = "bob",
                 AuctionEnd = DateTime.UtcNow.AddDays(4),
-                Item = new Item
+                Product = new Product
                 {
                     Make = "Ford",
                     Model = "Mustang",
@@ -76,7 +76,7 @@ public class DbInitializer
                 ReservePrice = 50000,
                 Seller = "tom",
                 AuctionEnd = DateTime.UtcNow.AddDays(-10),
-                Item = new Item
+                Product = new Product
                 {
                     Make = "Mercedes",
                     Model = "SLK",
@@ -92,7 +92,7 @@ public class DbInitializer
                 ReservePrice = 20000,
                 Seller = "alice",
                 AuctionEnd = DateTime.UtcNow.AddDays(30),
-                Item = new Item
+                Product = new Product
                 {
                     Make = "BMW",
                     Model = "X1",
@@ -108,7 +108,7 @@ public class DbInitializer
                 ReservePrice = 20000,
                 Seller = "bob",
                 AuctionEnd = DateTime.UtcNow.AddDays(45),
-                Item = new Item
+                Product = new Product
                 {
                     Make = "Ferrari",
                     Model = "Spider",
@@ -124,7 +124,7 @@ public class DbInitializer
                 ReservePrice = 150000,
                 Seller = "alice",
                 AuctionEnd = DateTime.UtcNow.AddDays(13),
-                Item = new Item
+                Product = new Product
                 {
                     Make = "Ferrari",
                     Model = "F-430",
@@ -139,7 +139,7 @@ public class DbInitializer
                 Status = Status.Live,
                 Seller = "bob",
                 AuctionEnd = DateTime.UtcNow.AddDays(19),
-                Item = new Item
+                Product = new Product
                 {
                     Make = "Audi",
                     Model = "R8",
@@ -155,7 +155,7 @@ public class DbInitializer
                 ReservePrice = 20000,
                 Seller = "tom",
                 AuctionEnd = DateTime.UtcNow.AddDays(20),
-                Item = new Item
+                Product = new Product
                 {
                     Make = "Audi",
                     Model = "TT",
@@ -171,7 +171,7 @@ public class DbInitializer
                 ReservePrice = 20000,
                 Seller = "bob",
                 AuctionEnd = DateTime.UtcNow.AddDays(48),
-                Item = new Item
+                Product = new Product
                 {
                     Make = "Ford",
                     Model = "Model T",

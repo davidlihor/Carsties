@@ -10,6 +10,7 @@
     <ItemGroup>
       <PackageReference Include="AutoMapper" Version="13.0.1" />
       <PackageReference Include="Carter" Version="9.0.0" />
+      <PackageReference Include="Grpc.AspNetCore" Version="2.64.0"/>
       <PackageReference Include="HotChocolate.AspNetCore" Version="14.1.0" />
       <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="14.3.0" />
       <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="10.5.5" />
@@ -31,6 +32,10 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Contracts\Contracts.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Protobuf GrpcServices="Server" Include="Protos/auctions.proto" />
     </ItemGroup>
 
 </Project>

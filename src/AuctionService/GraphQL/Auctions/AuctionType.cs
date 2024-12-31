@@ -9,14 +9,14 @@ public class AuctionType : ObjectType<Auction>
     {
         descriptor.Description("Represents Auction object");
         descriptor
-            .Field(x => x.Item)
+            .Field(x => x.Product)
             .ResolveWith<Resolvers>(x => x.GetItem(default!, default!))
             .Description("Item which the auction belongs");
     }
     
     private class Resolvers
     {
-        public IQueryable<Item> GetItem([Service] DataContext context, [Parent] Auction auction)
+        public IQueryable<Product> GetItem([Service] DataContext context, [Parent] Auction auction)
         {
             return context.Items.Where(x => x.AuctionId == auction.Id).AsQueryable();
         }

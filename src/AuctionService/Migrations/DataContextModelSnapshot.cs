@@ -34,6 +34,9 @@ namespace AuctionService.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
                     b.Property<int?>("CurrentHighBid")
                         .HasColumnType("integer");
 
@@ -52,6 +55,9 @@ namespace AuctionService.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Winner")
                         .HasColumnType("text");
 
@@ -60,7 +66,7 @@ namespace AuctionService.Migrations
                     b.ToTable("Auctions");
                 });
 
-            modelBuilder.Entity("AuctionService.Models.Item", b =>
+            modelBuilder.Entity("AuctionService.Models.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -70,6 +76,12 @@ namespace AuctionService.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Color")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
                     b.Property<string>("ImageUrl")
@@ -84,6 +96,12 @@ namespace AuctionService.Migrations
                     b.Property<string>("Model")
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
                     b.Property<int>("Year")
                         .HasColumnType("integer");
 
@@ -92,7 +110,7 @@ namespace AuctionService.Migrations
                     b.HasIndex("AuctionId")
                         .IsUnique();
 
-                    b.ToTable("Items");
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>
@@ -263,11 +281,11 @@ namespace AuctionService.Migrations
                     b.ToTable("OutboxState");
                 });
 
-            modelBuilder.Entity("AuctionService.Models.Item", b =>
+            modelBuilder.Entity("AuctionService.Models.Product", b =>
                 {
                     b.HasOne("AuctionService.Models.Auction", "Auction")
-                        .WithOne("Item")
-                        .HasForeignKey("AuctionService.Models.Item", "AuctionId")
+                        .WithOne("Product")
+                        .HasForeignKey("AuctionService.Models.Product", "AuctionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -288,7 +306,7 @@ namespace AuctionService.Migrations
 
             modelBuilder.Entity("AuctionService.Models.Auction", b =>
                 {
-                    b.Navigation("Item");
+                    b.Navigation("Product");
                 });
 #pragma warning restore 612, 618
         }

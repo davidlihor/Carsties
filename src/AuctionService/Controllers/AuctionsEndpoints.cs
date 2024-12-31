@@ -60,7 +60,7 @@ public class AuctionsEndpoints : ICarterModule
         var cachedAuction = await cache.GetOrCreateAsync($"auctions-{id}", async factory =>
         { 
             var auction = await context.Auctions
-                .Include(x => x.Item)
+                .Include(x => x.Product)
                 .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         
             return mapper.Map<AuctionDto>(auction);
@@ -77,7 +77,7 @@ public class AuctionsEndpoints : ICarterModule
         IMapper mapper)
     {
         var query = context.Auctions
-            .OrderBy(x => x.Item.Make).AsQueryable();
+            .OrderBy(x => x.Product.Make).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(date))
             query = query.Where(x => x.UpdatedAt.CompareTo(DateTime.Parse(date).ToUniversalTime()) > 0);
@@ -94,17 +94,17 @@ public class AuctionsEndpoints : ICarterModule
         IPublishEndpoint publishEndpoint,
         CancellationToken cancellationToken)
     {
-        var auction = await context.Auctions.Include(x => x.Item)
+        var auction = await context.Auctions.Include(x => x.Product)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         
         if(auction is null) return Results.NotFound();
         if(auction.Seller != httpContext.User.Identity.Name) return Results.Forbid();
         
-        auction.Item.Make = request.Make ?? auction.Item.Make;
-        auction.Item.Model = request.Model ?? auction.Item.Model;
-        auction.Item.Color= request.Color ?? auction.Item.Color;
-        auction.Item.Mileage = request.Mileage ?? auction.Item.Mileage;
-        auction.Item.Year = request.Year ?? auction.Item.Year;
+        auction.Product.Make = request.Make ?? auction.Product.Make;
+        auction.Product.Model = request.Model ?? auction.Product.Model;
+        auction.Product.Color= request.Color ?? auction.Product.Color;
+        auction.Product.Mileage = request.Mileage ?? auction.Product.Mileage;
+        auction.Product.Year = request.Year ?? auction.Product.Year;
         
         await cache.SetAsync($"auctions-{auction.Id}",
             mapper.Map<AuctionDto>(auction), 

@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AuctionService.Migrations
 {
     /// <inheritdoc />
-    public partial class InitCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,10 +22,12 @@ namespace AuctionService.Migrations
                     Winner = table.Column<string>(type: "text", nullable: true),
                     SoldAmount = table.Column<int>(type: "integer", nullable: true),
                     CurrentHighBid = table.Column<int>(type: "integer", nullable: true),
+                    AuctionEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    AuctionEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false)
+                    CreatedBy = table.Column<string>(type: "text", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -72,7 +74,7 @@ namespace AuctionService.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Items",
+                name: "Products",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -82,13 +84,17 @@ namespace AuctionService.Migrations
                     Color = table.Column<string>(type: "text", nullable: true),
                     Mileage = table.Column<int>(type: "integer", nullable: false),
                     ImageUrl = table.Column<string>(type: "text", nullable: true),
-                    AuctionId = table.Column<Guid>(type: "uuid", nullable: false)
+                    AuctionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedBy = table.Column<string>(type: "text", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Items", x => x.Id);
+                    table.PrimaryKey("PK_Products", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Items_Auctions_AuctionId",
+                        name: "FK_Products_Auctions_AuctionId",
                         column: x => x.AuctionId,
                         principalTable: "Auctions",
                         principalColumn: "Id",
@@ -143,12 +149,6 @@ namespace AuctionService.Migrations
                 column: "Delivered");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Items_AuctionId",
-                table: "Items",
-                column: "AuctionId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_EnqueueTime",
                 table: "OutboxMessage",
                 column: "EnqueueTime");
@@ -174,25 +174,31 @@ namespace AuctionService.Migrations
                 name: "IX_OutboxState_Created",
                 table: "OutboxState",
                 column: "Created");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_AuctionId",
+                table: "Products",
+                column: "AuctionId",
+                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Items");
-
-            migrationBuilder.DropTable(
                 name: "OutboxMessage");
 
             migrationBuilder.DropTable(
-                name: "Auctions");
+                name: "Products");
 
             migrationBuilder.DropTable(
                 name: "InboxState");
 
             migrationBuilder.DropTable(
                 name: "OutboxState");
+
+            migrationBuilder.DropTable(
+                name: "Auctions");
         }
     }
 }

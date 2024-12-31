@@ -47,17 +47,17 @@ public class AuctionMutation
     {
         var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var auction = await context.Auctions
-            .Include(x => x.Item)
+            .Include(x => x.Product)
             .FirstOrDefaultAsync(x => x.Id == input.Id, cancellationToken);
     
         if (auction is null) throw new GraphQLException("Auction not found");
         if (auction.Seller != userId) throw new GraphQLException("Unauthorized");
         
-        auction.Item.Make = input.Make ?? auction.Item.Make;
-        auction.Item.Model = input.Model ?? auction.Item.Model;
-        auction.Item.Color= input.Color ?? auction.Item.Color;
-        auction.Item.Mileage = input.Mileage ?? auction.Item.Mileage;
-        auction.Item.Year = input.Year ?? auction.Item.Year;
+        auction.Product.Make = input.Make ?? auction.Product.Make;
+        auction.Product.Model = input.Model ?? auction.Product.Model;
+        auction.Product.Color= input.Color ?? auction.Product.Color;
+        auction.Product.Mileage = input.Mileage ?? auction.Product.Mileage;
+        auction.Product.Year = input.Year ?? auction.Product.Year;
         
         await publishEndpoint.Publish(mapper.Map<AuctionUpdated>(auction), cancellationToken);
         var result = await context.SaveChangesAsync(cancellationToken) > 0;

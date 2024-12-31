@@ -7,7 +7,7 @@ services:
       - POSTGRES_PASSWORD=postgrespw
       - POSTGRES_DB=auctions
     ports:
-      - 5400:5432
+      - 5432:5432
     volumes:
       - /var/lib/postgresql/data/
 
@@ -44,16 +44,41 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_URLS=http://+:7050
       - RabbitMQ__Host=rabbitmq
       - ConnectionStrings__Database=Server=postgres;User Id=postgres;Password=postgrespw;Database=auctions
       - ConnectionStrings__Redis=redis-cache
       - IdentityServerUrl=http://identity-svc
+      - Kestrel__Endpoints__Grpc__Protocols=Http2
+      - Kestrel__Endpoints__Grpc__Url=http://+:7050
+      - Kestrel__Endpoints__WebApi__Protocols=Http1
+      - Kestrel__Endpoints__WebApi__Url=http://+:80
     ports:
       - 7000:80
+      - 7050:7050
     depends_on:
       - postgres
       - rabbitmq
       - redis-cache
+
+  bid-svc:
+    container_name: Bid.API
+    image: david/bid-svc:latest
+    build:
+      context: .
+      dockerfile: src/BiddingService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - RabbitMQ__Host=rabbitmq
+      - ConnectionStrings__MongoDB=mongodb://root:mongopw@mongodb
+      - GrpcAuction=http://auction-svc:7050
+      - IdentityServerUrl=http://identity-svc
+    ports:
+      - 7003:80
+    depends_on:
+      - mongodb
+      - rabbitmq
   
   search-svc:
     container_name: Search.API

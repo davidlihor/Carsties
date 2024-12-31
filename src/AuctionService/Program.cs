@@ -1,5 +1,7 @@
 using AuctionService.Data;
+using AuctionService.Data.Interceptors;
 using AuctionService.GraphQL.Auctions;
+using AuctionService.Services;
 using Carter;
 using HotChocolate.AspNetCore.Voyager;
 using MassTransit;
@@ -9,10 +11,13 @@ using Microsoft.Extensions.Caching.Hybrid;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
 builder.Services.AddCarter();
-builder.Services.AddDbContext<DataContext>(options =>
+builder.Services.AddGrpc();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<AuditableEntityIntercept>();
+builder.Services.AddDbContext<DataContext>((serviceProvider, options) =>
 {
+    options.AddInterceptors(serviceProvider.GetRequiredService<AuditableEntityIntercept>());
     options.UseNpgsql(builder.Configuration.GetConnectionString("Database"));
 });
 #pragma warning disable EXTEXP0018
@@ -77,8 +82,7 @@ var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
-
+app.MapGrpcService<GrpcAuctionService>();
 app.MapCarter();
 app.MapGraphQL();
 app.MapNitroApp();

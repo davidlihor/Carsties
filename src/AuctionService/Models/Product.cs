@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using AuctionService.Models.Abstractions;
 
 namespace AuctionService.Models;
 
-[Table("Items")]
-public class Item
+[Table("Products")]
+public class Product : Entity<Guid>
 {
-    public Guid Id { get; set; }
     public string Make { get; set; }
     public string Model { get; set; }
     public int Year { get; set; }

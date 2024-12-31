@@ -10,31 +10,31 @@ public class MappingProfiles : Profile
 {
     public MappingProfiles()
     {
-        CreateMap<Auction, AuctionDto>().IncludeMembers(x => x.Item);
-        CreateMap<Item, AuctionDto>();
+        CreateMap<Auction, AuctionDto>().IncludeMembers(x => x.Product);
+        CreateMap<Product, AuctionDto>();
 
-        CreateMap<Auction, AuctionCreated>().IncludeMembers(x => x.Item);
-        CreateMap<Item, AuctionCreated>();
+        CreateMap<Auction, AuctionCreated>().IncludeMembers(x => x.Product);
+        CreateMap<Product, AuctionCreated>();
         
-        CreateMap<Auction, AuctionUpdated>().IncludeMembers(x => x.Item);
-        CreateMap<Item, AuctionUpdated>();
+        CreateMap<Auction, AuctionUpdated>().IncludeMembers(x => x.Product);
+        CreateMap<Product, AuctionUpdated>();
         
         
         CreateMap<CreateAuctionDto, Auction>()
-            .ForMember(d => d.Item, o => o.MapFrom(s => s));
-        CreateMap<CreateAuctionDto, Item>();
+            .ForMember(d => d.Product, o => o.MapFrom(s => s));
+        CreateMap<CreateAuctionDto, Product>();
         
         CreateMap<UpdateAuctionDto, Auction>()
-            .ForMember(d => d.Item, o => o.MapFrom(s => s));
-        CreateMap<UpdateAuctionDto, Item>();
+            .ForMember(d => d.Product, o => o.MapFrom(s => s));
+        CreateMap<UpdateAuctionDto, Product>();
         
         
         CreateMap<CreateAuctionInput, Auction>()
-            .ForMember(d => d.Item, o => o.MapFrom(s => s));
-        CreateMap<CreateAuctionInput, Item>();
+            .ForMember(d => d.Product, o => o.MapFrom(s => s));
+        CreateMap<CreateAuctionInput, Product>();
         
         CreateMap<UpdateAuctionInput, Auction>()
-            .ForMember(d => d.Item, o => o.MapFrom(s => s));
-        CreateMap<UpdateAuctionInput, Item>();
+            .ForMember(d => d.Product, o => o.MapFrom(s => s));
+        CreateMap<UpdateAuctionInput, Product>();
     }
 }
