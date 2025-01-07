@@ -12,10 +12,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     options.TokenValidationParameters.ValidateAudience = false;
     options.TokenValidationParameters.NameClaimType = "username";
 });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CORSPolicy", configure =>
+    {
+        configure.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins(builder.Configuration["ClientUrl"]!);
+    });
+});
 
 var app = builder.Build();
 
+app.UseCors();
+app.MapReverseProxy();
+
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapReverseProxy();
+
 app.Run();
