@@ -1,5 +1,9 @@
 "use client"
 import Countdown, {zeroPad} from "react-countdown";
+import { Dispatch } from "../redux/store";
+import { useDispatch } from "react-redux";
+import { usePathname } from "next/navigation";
+import { setOpen } from "../redux/bidsSlice";
 
 type Props = {
     auctionEnd: string
@@ -23,9 +27,14 @@ const renderer= ({ days, hours, minutes, seconds, completed}:
 }
 
 export default function CountdownTimer({auctionEnd}: Props) {
+    const dispatch: Dispatch = useDispatch();
+    const pathName = usePathname();
+    
+    const auctionFinished = () => pathName.startsWith("/auctions/details") ? dispatch(setOpen(false)) : null;
+
     return (
         <div>
-            <Countdown date={auctionEnd} renderer={renderer} />
+            <Countdown date={auctionEnd} renderer={renderer} onComplete={auctionFinished} />
         </div>
     )
 }

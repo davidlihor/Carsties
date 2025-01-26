@@ -1,5 +1,5 @@
 "use server"
-import {Auction, Page, PagedResult} from "@/app/types";
+import {Auction, Bid, Page, PagedResult} from "@/app/types";
 import {FieldValues} from "react-hook-form";
 import agentMethods from "@/app/lib/agent";
 import {revalidatePath} from "next/cache";
@@ -34,5 +34,14 @@ export async function updateAuction(data: FieldValues, id: string){
 
 export async function deleteAuction(id: string){
     return await agentMethods.delete<Auction>(`auctions/${id}`)
+        .catch(error => { throw JSON.stringify(error) });
+}
+
+export async function getBidsForAuction(id: string){
+    return await agentMethods.get<Bid[]>(`bids/${id}`)
+}
+
+export async function postBidForAuction(auctionId: string, amount: number){
+    return await agentMethods.post<Bid>(`bids?auctionId=${auctionId}&amount=${amount}`, {})
         .catch(error => { throw JSON.stringify(error) });
 }

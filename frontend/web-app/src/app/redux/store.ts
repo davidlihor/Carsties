@@ -1,9 +1,13 @@
 import {configureStore} from "@reduxjs/toolkit";
 import pageSlice from "@/app/redux/pageSlice";
+import dataSlice from "@/app/redux/dataSlice";
+import bidsSlice from "@/app/redux/bidsSlice";
 
 const store = configureStore({
     reducer: {
-        page: pageSlice
+        page: pageSlice,
+        data: dataSlice,
+        bids: bidsSlice
     }
 })
 

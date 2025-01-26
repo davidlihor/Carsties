@@ -24,7 +24,7 @@ export default function Search() {
             <input
                 type="text"
                 placeholder="Type here to Search"
-                className="flex-grow bg-transparent focus:outline-none border-transparent focus:border-transparent focus:ring-0 text-gray-600"
+                className="input-custom"
                 value={searchValue}
                 onChange={(e) => dispatch(setSearch(e.target.value))}
                 onKeyDown={(e) => { if(e.key === "Enter") search() }}

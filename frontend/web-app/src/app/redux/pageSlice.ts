@@ -32,6 +32,6 @@ const pageSlice = createSlice({
     }
 })
 
-export const selectParams = (state: State) => state.page
+export const selectParams = (state: State) => state.page;
 export const { setParams, setSearch, reset } = pageSlice.actions;
 export default pageSlice.reducer;

@@ -6,6 +6,7 @@ import DetailedSpecs from "@/app/auctions/details/[id]/DetailedSpecs";
 import {getCurrentSession} from "@/app/actions/AuthActions";
 import EditButton from "@/app/auctions/details/[id]/EditButton";
 import DeleteButton from "@/app/auctions/details/[id]/DeleteButton";
+import BidList from "@/app/auctions/details/[id]/BidList";
 
 export default async function Details({params} : {params: {id: string}}){
     const data = await getAuction(params.id);
@@ -33,10 +34,7 @@ export default async function Details({params} : {params: {id: string}}){
                 <div className="w-full bg-gray-200 relative aspect-[5/3] rounded-lg overflow-hidden">
                     <CarImage auction={data}/>
                 </div>
-
-                <div className="border-2 rounded-lg p-2 bg-gray-100">
-                    <Heading title="Bids"/>
-                </div>
+                <BidList session={session} auction={data} />
             </div>
 
             <div className="mt-3 grid grid-cols-1 rounded-lg">

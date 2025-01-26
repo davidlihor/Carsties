@@ -23,6 +23,23 @@ export type Auction = {
     imageUrl: string,
 }
 
+export type Bid = {
+    id: string
+    auctionId: string
+    bidder: string
+    bidTime: string
+    amount: number
+    bidStatus: string
+}
+
+export enum BidStatus
+{
+    Accepted,
+    AcceptedBelowReserved,
+    TooLow,
+    Finished
+}
+
 export type Page = {
     pageNumber: number
     pageSize: number
@@ -33,4 +50,18 @@ export type Page = {
     filterBy: string
     seller?: string
     winner?: string
+}
+
+export type Data = {
+    auctions: Auction[],
+    pageCount: number,
+    totalCount: number,
+}
+
+export type AuctionFinished = {
+    itemSold: boolean
+    auctionId: string
+    winner?: string
+    seller: string
+    amount?: number
 }
