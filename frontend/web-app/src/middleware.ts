@@ -1,11 +1,8 @@
-import { withAuth } from "next-auth/middleware"
-
-export default withAuth({
-    pages: {
-        signIn: "/api/auth/signin",
-    }
-})
+export { auth as middleware } from "@/auth"
 
 export const config = {
-    matcher: ["/session"]
+    matcher: ["/session"],
+    pages: {
+        signIn: "/api/auth/signin"
+    }
 }

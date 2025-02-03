@@ -36,9 +36,9 @@ export default function BidList({ session, auction }: Props) {
                 toast.error(`${res.code} ${res.status}`);
             })
             .finally(() => setLoading(false));
-    }, [auction.id, setLoading, setBids])
+    }, [auction.id, setLoading, dispatch])
 
-    useEffect(() => { dispatch(setOpen(openForBids)) }, [openForBids, setOpen])
+    useEffect(() => { dispatch(setOpen(openForBids)) }, [openForBids, dispatch])
 
     if (loading) return <span>Loading bids...</span>
 

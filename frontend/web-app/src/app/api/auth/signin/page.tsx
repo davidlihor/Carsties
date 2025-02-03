@@ -1,12 +1,12 @@
 import EmptyFilter from "@/app/components/EmptyFilter";
 
-export default function SignIn({searchParams}: {searchParams: {callbackUrl: string}}){
+export default async function SignIn({ searchParams }: { searchParams: Promise<{ callbackUrl?: string }> }) {
     return (
         <EmptyFilter
             title="Sign in"
-            subtitle={""}
+            subTitle={""}
             showLogin
-            callbackUrl={searchParams.callbackUrl}
+            callbackUrl={(await searchParams).callbackUrl}
         />
     )
 }

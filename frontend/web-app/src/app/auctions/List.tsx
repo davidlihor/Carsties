@@ -11,7 +11,6 @@ import EmptyFilter from "@/app/components/EmptyFilter";
 import {selectData, setData} from "@/app/redux/dataSlice";
 
 export default function List() {
-    const [list, setList] = useState(true);
     const [loading, setLoading] = useState(true);
     const params = useSelector(selectParams);
     const data = useSelector(selectData);
@@ -26,7 +25,7 @@ export default function List() {
             dispatch(setData(data));
             setLoading(false);
         });
-    }, [params])
+    }, [params, dispatch])
 
     if(loading) return <h3>Loading...</h3>
 
@@ -37,7 +36,7 @@ export default function List() {
                 <EmptyFilter showReset />
             ):(
                 <>
-                    <div className={`grid gap-6 ${list ? "" : "grid-cols-4"}`}>
+                    <div className={`grid gap-6`}>
                         {data.auctions.map(auction => (
                             <AuctionCard auction={auction} key={auction.id}/>
                         ))}

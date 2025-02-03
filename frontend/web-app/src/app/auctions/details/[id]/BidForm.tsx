@@ -13,7 +13,7 @@ type Props = {
 }
 
 export default function BidForm({ auctionId, highBid }: Props) {
-    const { register, handleSubmit, reset, formState: { errors } } = useForm();
+    const { register, handleSubmit, reset } = useForm();
     const dispatch: Dispatch = useDispatch();
 
     const onSubmit = async (data: FieldValues) => {

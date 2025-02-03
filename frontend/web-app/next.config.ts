@@ -8,9 +8,10 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      {protocol: "http", hostname: "*"}
+      { protocol: "http", hostname: "*" }
     ]
-  }
+  },
+  output: "standalone"
 };
 
 export default nextConfig;

@@ -2,7 +2,7 @@ import axios, {AxiosError, AxiosResponse} from "axios";
 import {getCurrentSession} from "@/app/actions/AuthActions";
 
 const agent = axios.create({
-    baseURL: "http://localhost:7002",
+    baseURL: process.env.API_URL,
     timeout: 5000,
 });
 agent.interceptors.request.use(async request => {

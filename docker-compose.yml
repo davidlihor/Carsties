@@ -10,6 +10,8 @@ services:
       - 5432:5432
     volumes:
       - /var/lib/postgresql/data/
+    networks:
+      - carsties_network
 
   mongodb:
     container_name: MongoDB
@@ -21,6 +23,8 @@ services:
       - 27017:27017
     volumes:
       - /data/db
+    networks:
+      - carsties_network
 
   rabbitmq:
     container_name: RabbitMQ
@@ -28,13 +32,17 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
-  
+    networks:
+      - carsties_network
+
   redis-cache:
     container_name: Redis
     image: redis
     ports:
       - 6379:6379
-  
+    networks:
+      - carsties_network
+
   auction-svc:
     container_name: Auction.API
     image: david/auction-svc:latest
@@ -56,6 +64,8 @@ services:
     ports:
       - 7000:80
       - 7050:7050
+    networks:
+      - carsties_network
     depends_on:
       - postgres
       - rabbitmq
@@ -76,10 +86,12 @@ services:
       - IdentityServerUrl=http://identity-svc
     ports:
       - 7003:80
+    networks:
+      - carsties_network
     depends_on:
       - mongodb
       - rabbitmq
-        
+
   notification-svc:
     container_name: Notification.API
     image: david/notification-svc:latest
@@ -92,9 +104,11 @@ services:
       - RabbitMQ__Host=rabbitmq
     ports:
       - 7004:80
+    networks:
+      - carsties_network
     depends_on:
       - rabbitmq
-  
+
   search-svc:
     container_name: Search.API
     image: david/search-svc:latest
@@ -109,6 +123,8 @@ services:
       - AuctionServiceUrl=http://auction-svc
     ports:
       - 7001:80
+    networks:
+      - carsties_network
     depends_on:
       - mongodb
       - rabbitmq
@@ -122,9 +138,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
       - ASPNETCORE_URLS=http://+:80
-    ports:
-      - 7002:80
-      
+      - ClientUrl=https://app.carsties.local
+    networks:
+      - carsties_network
+
   identity-svc:
     container_name: Identity
     image: david/identity-svc:latest
@@ -134,8 +151,49 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
       - ASPNETCORE_URLS=http://+:80
+      - IssuerUri=https://id.carsties.local
+      - ClientApp=https://app.carsties.local
       - ConnectionStrings__DefaultConnection=Server=postgres;User Id=postgres;Password=postgrespw;Database=identity
-    ports:
-      - 5001:80
+    networks:
+      - carsties_network
     depends_on:
       - postgres
+
+  web-app:
+    container_name: NextJS
+    image: david/web-app:latest
+    build:
+      context: .
+      dockerfile: frontend/web-app/Dockerfile
+    environment:
+      - AUTH_SECRET="116z3YPpzKuBctPG00W2nHW7rbehdTC81KkNVedHJMY="
+      - AUTH_URL=https://app.carsties.local
+      - AUTH_URL_INTERNAL=http://web-app:3000
+      - API_URL=http://gateway-svc
+      - ID_URL=https://id.carsties.local
+      - ID_URL_INTERNAL=http://identity-svc
+      - NOTIFY_URL=https://api.carsties.local/notification
+    volumes:
+      - /var/lib/web/data
+    networks:
+      - carsties_network
+
+  nginx:
+    container_name: Nginx
+    image: nginx:latest
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./devcerts:/etc/nginx/certs:ro
+    networks:
+      - carsties_network
+    depends_on:
+      - web-app
+      - identity-svc
+      - gateway-svc
+
+networks:
+  carsties_network:
+    driver: bridge

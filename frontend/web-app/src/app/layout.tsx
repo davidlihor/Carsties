@@ -8,6 +8,7 @@ import { getCurrentSession } from "./actions/AuthActions";
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
   const session = await getCurrentSession();
+  const notifyUrl = process.env.NOTIFY_URL;
 
   return (
     <html lang="en">
@@ -16,7 +17,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <ToasterProvider />
           <Navbar />
           <main className="container mx-auto px-5 pt-10">
-              <SignalRProvider session={session}>
+              <SignalRProvider session={session} notifyUrl={notifyUrl!}>
                   {children}              
               </SignalRProvider>
           </main>
