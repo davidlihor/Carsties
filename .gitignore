@@ -5,6 +5,7 @@
 
 src/IdentityService
 devcerts/*
+.vscode
 
 # dotenv files
 .env

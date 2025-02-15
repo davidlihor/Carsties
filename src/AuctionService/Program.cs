@@ -77,6 +77,9 @@ builder.Services
     .AddInMemorySubscriptions()
     .AddAuthorization();
 
+builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
+//builder.Services.Decorate<IAuctionRepository, CachedBasketRepository>();
+
 var app = builder.Build();
 
 app.UseAuthentication();
@@ -98,3 +101,5 @@ catch (Exception e)
 }
 
 app.Run();
+
+public partial class Program {}

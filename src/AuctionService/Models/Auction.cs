@@ -12,4 +12,6 @@ public class Auction : Entity<Guid>
     public DateTime AuctionEnd { get; set; }
     public Status Status { get; set; }
     public Product Product { get; set; }
+
+    public bool HasReservePrice() => ReservePrice > 0;
 }
