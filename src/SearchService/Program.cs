@@ -9,7 +9,12 @@ using SearchService.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddHttpClient<AuctionServiceHttpClient>().AddPolicyHandler(GetPolicy());
+builder.Services.AddHttpClient<AuctionServiceHttpClient>().AddPolicyHandler(_ => 
+    HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .OrResult(msg => msg.StatusCode == HttpStatusCode.NotFound)
+        .WaitAndRetryForeverAsync(_ => TimeSpan.FromSeconds(3)));
+
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddMassTransit(options =>
 {
@@ -32,25 +37,13 @@ builder.Services.AddMassTransit(options =>
 });
 
 var app = builder.Build();
-
-//app.UseAuthorization();
 app.MapControllers();
-
-try
+app.Lifetime.ApplicationStarted.Register(async () =>
 {
-    await DbInitializer.InitDb(app);
-}
-catch (Exception e)
-{
-    Console.WriteLine(e);
-}
+    await Policy.Handle<TimeoutException>()
+        .WaitAndRetryAsync(5, retryCount => TimeSpan.FromSeconds(Math.Pow(2, retryCount)))
+        .ExecuteAndCaptureAsync(async () => await DbInitializer.InitDb(app));
+});
 
 app.Run();
-
-//return;
-static IAsyncPolicy<HttpResponseMessage> GetPolicy() => HttpPolicyExtensions
-    .HandleTransientHttpError()
-    .OrResult(msg => msg.StatusCode == HttpStatusCode.NotFound)
-    .WaitAndRetryForeverAsync(_ => TimeSpan.FromSeconds(3));
-
 public partial class Program {}

@@ -26,13 +26,13 @@ public class CustomWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetim
         builder.UseEnvironment("Testing");
         builder.ConfigureTestServices(services =>
         {
-            services.RemoveDbContext();
+            services.RemoveDbContext<DataContext>();
             services.AddDbContext<DataContext>((serviceProvider, options) =>
             {
                 options.AddInterceptors(serviceProvider.GetRequiredService<AuditableEntityIntercept>());
                 options.UseNpgsql(_postgreSqlContainer.GetConnectionString());
             });
-            services.EnsureCreated();
+            services.EnsureDbCreated<DataContext>();
             
             services.AddMassTransitTestHarness();
             services.AddAuthentication(FakeJwtBearerDefaults.AuthenticationScheme).AddFakeJwtBearer(options =>

@@ -5,10 +5,13 @@ namespace AuctionService.IntegrationTests.Util;
 
 public static class DbHelper
 {
-    public static void InitDbForTests(DataContext db)
+    public static void InitDbForTests<T>(T db)
     {
-        db.Auctions.AddRange(GetAuctionsForTest());
-        db.SaveChanges();
+        if(db is DataContext dataContext)
+        {
+            dataContext.Auctions.AddRange(GetAuctionsForTest());
+            dataContext.SaveChanges();
+        }
     }
 
     public static void ReinitDbForTests(DataContext db)

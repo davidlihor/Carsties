@@ -38,4 +38,5 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 
 var app = builder.Build();
 app.MapControllers();
+await app.InitDbAsync();
 app.Run();

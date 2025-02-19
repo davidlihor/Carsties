@@ -1,4 +1,3 @@
-using AuctionService.Data.Interceptors;
 using AuctionService.Models;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
