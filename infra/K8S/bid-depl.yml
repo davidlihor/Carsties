@@ -15,6 +15,22 @@ spec:
         - name: bid-svc
           image: david/bid-svc
           imagePullPolicy: Never
+          env:
+            - name: ConnectionStrings__MongoDB
+              valueFrom:
+                secretKeyRef:
+                  name: bid-secret
+                  key: connectionString
+            - name: RabbitMQ__Username
+              valueFrom:
+                secretKeyRef:
+                  name: rabbit-secret
+                  key: username
+            - name: RabbitMQ__Password
+              valueFrom:
+                secretKeyRef:
+                  name: rabbit-secret
+                  key: password
           envFrom:
             - configMapRef:
                 name: bid-svc-config

@@ -15,6 +15,22 @@ spec:
         - name: search-svc
           image: david/search-svc
           imagePullPolicy: Never
+          env:
+            - name: ConnectionStrings__MongoDB
+              valueFrom: 
+                secretKeyRef:
+                  name: search-secret
+                  key: connectionString
+            - name: RabbitMQ__Username
+              valueFrom: 
+                secretKeyRef:
+                  name: rabbit-secret
+                  key: username
+            - name: RabbitMQ__Password
+              valueFrom: 
+                secretKeyRef:
+                  name: rabbit-secret
+                  key: password
           envFrom:
             - configMapRef:
                 name: search-svc-config
