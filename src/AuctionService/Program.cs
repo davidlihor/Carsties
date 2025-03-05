@@ -8,6 +8,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Polly;
 
@@ -60,10 +61,19 @@ builder.Services.AddMassTransit(options =>
 });
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
-    options.Authority = builder.Configuration["IdentityServerUrl"];
     options.RequireHttpsMetadata = false;
-    options.TokenValidationParameters.ValidateAudience = false;
-    options.TokenValidationParameters.NameClaimType = "username";
+    options.Authority = builder.Configuration["JWT:Authority"];
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["JWT:Issuer"],
+        ValidAudience = builder.Configuration["JWT:Audience"],
+        ClockSkew = TimeSpan.FromMinutes(5),
+        NameClaimType = "preferred_username"
+    };
 });
 builder.Services.AddAuthorization();
 
@@ -100,4 +110,4 @@ retryPolicy.ExecuteAndCapture(() => DbInitializer.InitDb(app));
 
 app.Run();
 
-public partial class Program {}
+public partial class Program { }

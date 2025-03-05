@@ -6,7 +6,6 @@ data:
   ASPNETCORE_URLS: http://+:80;http://+:7050
   RabbitMQ__Host: rabbitmq-clusterip
   ConnectionStrings__Redis: redis-cache
-  IdentityServerUrl: http://identity-clusterip
   Kestrel__Endpoints__Grpc__Protocols: Http2
   Kestrel__Endpoints__Grpc__Url: http://+:7050
   Kestrel__Endpoints__WebApi__Protocols: Http1
@@ -29,7 +28,6 @@ data:
   ASPNETCORE_URLS: http://+:80
   RabbitMQ__Host: rabbitmq-clusterip
   GrpcAuction: http://auction-clusterip:7050
-  IdentityServerUrl: http://identity-clusterip
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -45,17 +43,17 @@ metadata:
   name: gateway-svc-config
 data:
   ASPNETCORE_URLS: http://+:80
-  ClientUrl: https://app.carsties.local
-  IdentityServerUrl: http://identity-clusterip
+  Cors_Allowed_Origins: https://app.carsties.local
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: identity-svc-config
 data:
-  ASPNETCORE_URLS: http://+:80
-  IssuerUri: https://id.carsties.local
-  ClientApp: https://app.carsties.local
+  KC_DB: postgres
+  KC_PROXY: edge
+  KC_HOSTNAME: https://id.carsties.local
+  KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
 ---
 apiVersion: v1
 kind: ConfigMap

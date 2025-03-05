@@ -31,6 +31,26 @@ spec:
                 secretKeyRef:
                   name: rabbit-secret
                   key: password
+            - name: JWT__Authority
+              valueFrom:
+                secretKeyRef:
+                  name: auction-secret
+                  key: authority
+            - name: JWT__Issuer
+              valueFrom:
+                secretKeyRef:
+                  name: auction-secret
+                  key: issuer
+            - name: JWT__ClientId
+              valueFrom:
+                secretKeyRef:
+                  name: auction-secret
+                  key: clientId
+            - name: JWT__Audience
+              valueFrom:
+                secretKeyRef:
+                  name: auction-secret
+                  key: audience
           envFrom:
             - configMapRef:
                 name: auction-svc-config

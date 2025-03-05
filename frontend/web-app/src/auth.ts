@@ -1,46 +1,46 @@
 import NextAuth, { Profile } from "next-auth";
 import { OIDCConfig } from "next-auth/providers"
-import DuendeIDS6Provider from "next-auth/providers/duende-identity-server6"
+import Keycloak from "next-auth/providers/keycloak"
 
 export const { handlers, auth } = NextAuth({
     session: {
         strategy: "jwt"
     },
     providers: [
-        DuendeIDS6Provider({
+        Keycloak({
             id: "auth-server",
-            clientId: "nextApp",
-            clientSecret: "secret",
-            issuer: process.env.ID_URL,
+            clientId: process.env.CLIENT_ID,
+            clientSecret: process.env.CLIENT_SECRET,
+            issuer: `${process.env.ID_URL}/realms/${process.env.REALM}`,
             authorization: {
-                params: { scope: "openid profile auctionApp" },
-                url: `${process.env.ID_URL}/connect/authorize`
+                params: { scope: "openid profile email" },
+                url: `${process.env.ID_URL}/realms/${process.env.REALM}/protocol/openid-connect/auth`
             },
             token: {
-                url: `${process.env.ID_URL_INTERNAL}/connect/token`
+                url: `${process.env.ID_URL_INTERNAL}/realms/${process.env.REALM}/protocol/openid-connect/token`
             },
             userinfo: {
-                url: `${process.env.ID_URL_INTERNAL}/connect/token`
+                url: `${process.env.ID_URL_INTERNAL}/realms/${process.env.REALM}/protocol/openid-connect/userinfo`
             },
             idToken: true
-        } as OIDCConfig<Omit<Profile,"username">>)
+        } as OIDCConfig<Profile>)
     ],
     callbacks: {
-        async redirect({url, baseUrl}){
+        async redirect({ url, baseUrl }) {
             return url.startsWith(baseUrl) ? url : baseUrl
         },
         async authorized({ auth }) {
             return !!auth
         },
-        async jwt({token, profile, account}) {
-            if(account && account.access_token)
+        async jwt({ token, profile, account }) {
+            if (account && account.access_token)
                 token.accessToken = account.access_token
-            if(profile)
-                token.username = profile.username
+            if (profile && profile.preferred_username)
+                token.username = profile.preferred_username
             return token
         },
-        async session({session, token}){
-            if(token){
+        async session({ session, token }) {
+            if (token) {
                 session.accessToken = token.accessToken
                 session.user.username = token.username
             }
@@ -48,3 +48,21 @@ export const { handlers, auth } = NextAuth({
         }
     }
 })
+
+// DuendeIDS6Provider({
+//     id: "auth-server",
+//     clientId: "nextApp",
+//     clientSecret: "secret",
+//     issuer: process.env.ID_URL,
+//     authorization: {
+//         params: { scope: "openid profile auctionApp" },
+//         url: `${process.env.ID_URL}/connect/authorize`
+//     },
+//     token: {
+//         url: `${process.env.ID_URL_INTERNAL}/connect/token`
+//     },
+//     userinfo: {
+//         url: `${process.env.ID_URL_INTERNAL}/connect/token`
+//     },
+//     idToken: true
+// } as OIDCConfig<Omit<Profile,"username">>)

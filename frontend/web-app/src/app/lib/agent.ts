@@ -1,5 +1,5 @@
-import axios, {AxiosError, AxiosResponse} from "axios";
-import {getCurrentSession} from "@/app/actions/AuthActions";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import { getCurrentSession } from "@/app/actions/AuthActions";
 
 const agent = axios.create({
     baseURL: process.env.API_URL,
@@ -23,26 +23,26 @@ agent.interceptors.response.use(async response => {
     return Promise.reject(customError);
 });
 
-async function requestWrapper<T>(promise: Promise<AxiosResponse<T>> ): Promise<T> {
+async function requestWrapper<T>(promise: Promise<AxiosResponse<T>>): Promise<T> {
     try {
         const response: AxiosResponse<T> = await promise;
         return response.data;
-    }catch (error) {
+    } catch (error) {
         throw error;
     }
 }
 
 const agentMethods = {
-    async get<T>(url: string){
+    async get<T>(url: string) {
         return requestWrapper(agent.get<T>(url));
     },
-    async post<T>(url: string, body: object){
+    async post<T>(url: string, body: object) {
         return requestWrapper(agent.post<T>(url, body));
     },
-    async put<T>(url: string, body: object){
+    async put<T>(url: string, body: object) {
         return requestWrapper(agent.put<T>(url, body));
     },
-    async delete<T>(url: string){
+    async delete<T>(url: string) {
         return requestWrapper(agent.delete<T>(url));
     },
 }

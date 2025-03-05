@@ -10,7 +10,7 @@ declare module "next-auth" {
         accessToken: string
     }
     interface Profile {
-        username: string
+        preferred_username: number
     }
     interface User {
         username: string

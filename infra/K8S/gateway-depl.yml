@@ -15,6 +15,27 @@ spec:
         - name: gateway-svc
           image: david/gateway-svc
           imagePullPolicy: Never
+          env:
+            - name: JWT__Authority
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: authority
+            - name: JWT__Issuer
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: issuer
+            - name: JWT__ClientId
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: clientId
+            - name: JWT__Audience
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: audience
           envFrom:
             - configMapRef:
                 name: gateway-svc-config

@@ -6,6 +6,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgrespw
       - POSTGRES_DB=auctions
+      - POSTGRES_DB=keycloak
     ports:
       - 5432:5432
     volumes:
@@ -138,8 +139,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
       - ASPNETCORE_URLS=http://+:80
-      - ClientUrl=https://app.carsties.local
-      - IdentityServerUrl=http://identity-svc
+      - Cors_Allowed_Origins=https://app.carsties.local,http://localhost:3000
     networks:
       - carsties_network
 
@@ -152,8 +152,30 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
       - IssuerUri=https://id.carsties.local
-      - ClientApp=https://app.carsties.local
+      - ClientApp=http://localhost:3000
       - ConnectionStrings__DefaultConnection=Server=postgres;User Id=postgres;Password=postgrespw;Database=identity
+    networks:
+      - carsties_network
+    depends_on:
+      - postgres
+    ports:
+      - 5001:80
+  
+  keycloak-svc:
+    container_name: Keycloak
+    image: quay.io/keycloak/keycloak:latest
+    command: start
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_PORT: 5432
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgrespw
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_PROXY: edge
+      KC_HOSTNAME: https://id.carsties.local
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: true
     networks:
       - carsties_network
     depends_on:
@@ -171,8 +193,11 @@ services:
       - AUTH_URL_INTERNAL=http://web-app:3000
       - API_URL=http://gateway-svc
       - ID_URL=https://id.carsties.local
-      - ID_URL_INTERNAL=http://identity-svc
+      - ID_URL_INTERNAL=http://keycloak-svc:8080
       - NOTIFY_URL=https://api.carsties.local/notification
+      - CLIENT_ID=nextApp
+      - CLIENT_SECRET=PYmd7c44MJedf68SEosTbzb6AQhjwllb
+      - REALM=carsties-auth
     volumes:
       - /var/lib/web/data
     networks:

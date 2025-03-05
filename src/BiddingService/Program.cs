@@ -3,6 +3,7 @@ using BiddingService.Services;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,10 +31,19 @@ builder.Services.AddMassTransit(options =>
 });
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
-    options.Authority = builder.Configuration["IdentityServerUrl"];
     options.RequireHttpsMetadata = false;
-    options.TokenValidationParameters.ValidateAudience = false;
-    options.TokenValidationParameters.NameClaimType = "username";
+    options.Authority = builder.Configuration["JWT:Authority"];
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["JWT:Issuer"],
+        ValidAudience = builder.Configuration["JWT:Audience"],
+        ClockSkew = TimeSpan.FromMinutes(5),
+        NameClaimType = "preferred_username"
+    };
 });
 
 var app = builder.Build();

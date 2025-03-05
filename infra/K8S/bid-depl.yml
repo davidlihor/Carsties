@@ -31,6 +31,26 @@ spec:
                 secretKeyRef:
                   name: rabbit-secret
                   key: password
+            - name: JWT__Authority
+              valueFrom:
+                secretKeyRef:
+                  name: bid-secret
+                  key: authority
+            - name: JWT__Issuer
+              valueFrom:
+                secretKeyRef:
+                  name: bid-secret
+                  key: issuer
+            - name: JWT__ClientId
+              valueFrom:
+                secretKeyRef:
+                  name: bid-secret
+                  key: clientId
+            - name: JWT__Audience
+              valueFrom:
+                secretKeyRef:
+                  name: bid-secret
+                  key: audience
           envFrom:
             - configMapRef:
                 name: bid-svc-config
