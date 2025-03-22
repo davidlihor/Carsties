@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,7 +36,8 @@ var app = builder.Build();
 
 app.UseCors();
 app.MapReverseProxy();
-
+app.UseMetricServer();
+app.UseHttpMetrics();
 app.UseAuthentication();
 app.UseAuthorization();
 

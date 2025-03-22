@@ -1,0 +1,20 @@
+{{- range .Values.deployments }}
+{{- range .volumes }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .name }}-pvc
+  namespace: {{ $.Values.global.namespace }}
+spec:
+  accessModes:
+    - {{ .accessMode }}
+  resources:
+    requests:
+      storage: {{ .size }}
+  {{- if .storageClass }}
+  storageClassName: {{ .storageClass }}
+  {{- end }}
+  volumeMode: Filesystem
+{{- end }}
+{{- end}}

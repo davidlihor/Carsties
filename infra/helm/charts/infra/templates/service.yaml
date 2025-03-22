@@ -1,0 +1,23 @@
+{{- range .Values.deployments }}
+{{- if .ports }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}-clusterip
+  namespace: {{ $.Values.global.namespace }}
+  labels:
+    app: {{ .name }}
+spec:
+  selector:
+    app: {{ .name }}
+  type: ClusterIP
+  ports:
+    {{- range .ports }}
+    - name: {{ .name }}
+      port: {{ .servicePort }}
+      targetPort: {{ .containerPort }}
+      protocol: {{ .protocol }}
+    {{- end }}
+{{- end }}
+{{- end }}

@@ -2,6 +2,7 @@ using System.Net;
 using MassTransit;
 using Polly;
 using Polly.Extensions.Http;
+using Prometheus;
 using SearchService.Consumers;
 using SearchService.Data;
 using SearchService.Services;   
@@ -44,6 +45,7 @@ app.Lifetime.ApplicationStarted.Register(async () =>
         .WaitAndRetryAsync(5, retryCount => TimeSpan.FromSeconds(Math.Pow(2, retryCount)))
         .ExecuteAndCaptureAsync(async () => await DbInitializer.InitDb(app));
 });
-
+app.UseMetricServer();
+app.UseHttpMetrics();
 app.Run();
 public partial class Program {}

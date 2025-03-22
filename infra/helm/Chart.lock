@@ -1,0 +1,9 @@
+dependencies:
+- name: infra
+  repository: file://charts/infra
+  version: 0.1.0
+- name: app
+  repository: file://charts/app
+  version: 0.1.0
+digest: sha256:b45e939d570ea0b0493662081a00962d281f097635f77f83ddefd41c3c2d30f2
+generated: "2025-03-14T17:47:10.205090796+02:00"

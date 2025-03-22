@@ -1,0 +1,21 @@
+{{- range .Values.deployments }}
+{{- if .nodePort }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}-np
+  namespace: {{ $.Values.global.namespace }}
+spec:
+  selector:
+    app: {{ .name }}
+  type: NodePort
+  ports:
+    {{- range .nodePort }}
+    - protocol: {{ .protocol }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+      nodePort: {{ .nodePort }}
+    {{- end }}
+{{- end }}
+{{- end }}

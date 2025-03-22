@@ -1,5 +1,6 @@
 using MassTransit;
 using NotificationService.Hubs;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,4 +22,6 @@ builder.Services.AddMassTransit(options =>
 
 var app = builder.Build();
 app.MapHub<NotificationHub>("/notification");
+app.UseMetricServer();
+app.UseHttpMetrics();
 app.Run();

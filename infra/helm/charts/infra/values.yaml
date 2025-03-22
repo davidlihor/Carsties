@@ -1,0 +1,197 @@
+deployments:
+  - name: auction
+    monitoring: true
+    config:
+      ASPNETCORE_URLS: http://+:80;http://+:7050
+      RabbitMQ__Host: rabbitmq-clusterip
+      ConnectionStrings__Redis: redis-cache
+      Kestrel__Endpoints__Grpc__Protocols: Http2
+      Kestrel__Endpoints__Grpc__Url: http://+:7050
+      Kestrel__Endpoints__WebApi__Protocols: Http1
+      Kestrel__Endpoints__WebApi__Url: http://+:80
+    secrets:
+      ConnectionStrings__Database: Server=postgres-clusterip;User Id=postgres;Password=postgresSecretPw;Database=auctions
+      JWT__Authority: http://identity-clusterip/realms/carsties-auth
+      JWT__Issuer: https://id.carsties.local/realms/carsties-auth
+      JWT__ClientId: nextApp
+      JWT__Audience: account
+      RabbitMQ__Username: rabbitUn
+      RabbitMQ__Password: rabbitSecretPw
+    ports:
+      - name: http
+        containerPort: 80
+        servicePort: 80
+        protocol: TCP
+      - name: grpc
+        containerPort: 7050
+        servicePort: 7050
+        protocol: TCP
+
+  - name: search
+    monitoring: true
+    config:
+      ASPNETCORE_URLS: http://+:80
+      RabbitMQ__Host: rabbitmq-clusterip
+      AuctionServiceUrl: http://auction-clusterip
+    secrets:
+      ConnectionStrings__MongoDB: mongodb://mongoUn:mongoSecretPw@mongodb-clusterip
+      RabbitMQ__Username: rabbitUn
+      RabbitMQ__Password: rabbitSecretPw
+    ports:
+      - name: http
+        containerPort: 80
+        servicePort: 80
+        protocol: TCP
+
+  - name: bid
+    monitoring: true
+    config:
+      ASPNETCORE_URLS: http://+:80
+      RabbitMQ__Host: rabbitmq-clusterip
+      GrpcAuction: http://auction-clusterip:7050
+    secrets:
+      ConnectionStrings__MongoDB: mongodb://mongoUn:mongoSecretPw@mongodb-clusterip
+      JWT__Authority: http://identity-clusterip/realms/carsties-auth
+      JWT__Issuer: https://id.carsties.local/realms/carsties-auth
+      JWT__ClientId: nextApp
+      JWT__Audience: account
+      RabbitMQ__Username: rabbitUn
+      RabbitMQ__Password: rabbitSecretPw
+    ports:
+      - name: http
+        containerPort: 80
+        servicePort: 80
+        protocol: TCP
+
+  - name: notification
+    monitoring: true
+    config:
+      ASPNETCORE_URLS: http://+:80
+      RabbitMQ__Host: rabbitmq-clusterip
+    secrets:
+      RabbitMQ__Username: rabbitUn
+      RabbitMQ__Password: rabbitSecretPw
+    ports:
+      - name: http
+        containerPort: 80
+        servicePort: 80
+        protocol: TCP
+
+  - name: gateway
+    monitoring: true
+    config:
+      ASPNETCORE_URLS: http://+:80
+      Cors_Allowed_Origins: https://app.carsties.local
+    secrets:
+      JWT__Authority: http://identity-clusterip/realms/carsties-auth
+      JWT__Issuer: https://id.carsties.local/realms/carsties-auth
+      JWT__ClientId: nextApp
+      JWT__Audience: account
+    ports:
+      - name: http
+        containerPort: 80
+        servicePort: 80
+        protocol: TCP
+
+  - name: identity
+    volumes:
+      - name: keycloak
+        size: 200Mi
+        accessMode: ReadWriteOnce
+    config:
+      KC_DB: postgres
+      KC_PROXY: edge
+      KC_HOSTNAME: https://id.carsties.local
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+    secrets:
+      KC_DB_URL: jdbc:postgresql://postgres-clusterip:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgresSecretPw
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - name: http
+        containerPort: 8080
+        servicePort: 80
+        protocol: TCP
+
+  - name: webapp
+    config:
+      AUTH_URL: https://app.carsties.local
+      AUTH_URL_INTERNAL: http://webapp-clusterip:3000
+      API_URL: http://gateway-clusterip
+      ID_URL: https://id.carsties.local
+      ID_URL_INTERNAL: http://identity-clusterip
+      NOTIFY_URL: https://api.carsties.local/notification
+    secrets:
+      AUTH_SECRET: thisisevenmoresecretthanprevioussecrets
+      CLIENT_ID: nextApp
+      CLIENT_SECRET: nXjpE7eDgHy2OktqQg9nTVruXlTBxdVY
+      REALM: carsties-auth
+    ports:
+      - name: http
+        containerPort: 3000
+        servicePort: 3000
+        protocol: TCP
+
+  - name: postgres
+    volumes:
+      - name: postgres
+        size: 200Mi
+        accessMode: ReadWriteOnce
+    config:
+      POSTGRES_DB: keycloak
+    secrets:
+      POSTGRES_PASSWORD: postgresSecretPw
+    ports:
+      - name: http
+        containerPort: 5432
+        servicePort: 5432
+        protocol: TCP
+    nodePort:
+      - protocol: TCP
+        port: 5432
+        targetPort: 5432
+        nodePort: 30001
+
+  - name: mongodb
+    volumes:
+      - name: mongodb
+        size: 200Mi
+        accessMode: ReadWriteOnce
+    secrets:
+      MONGO_INITDB_ROOT_USERNAME: mongoUn
+      MONGO_INITDB_ROOT_PASSWORD: mongoSecretPw
+    ports:
+      - name: http
+        containerPort: 27017
+        servicePort: 27017
+        protocol: TCP
+    nodePort:
+      - protocol: TCP
+        port: 27017
+        targetPort: 27017
+        nodePort: 30003
+
+  - name: rabbitmq
+    volumes:
+      - name: rabbitmq
+        size: 200Mi
+        accessMode: ReadWriteOnce
+    secrets:
+      RABBITMQ_DEFAULT_USER: rabbitUn
+      RABBITMQ_DEFAULT_PASS: rabbitSecretPw
+    ports:
+      - name: rbmq-mgmt-port
+        containerPort: 15672
+        servicePort: 15672
+        protocol: TCP
+      - name: rbmq-msg-port
+        containerPort: 5672
+        servicePort: 5672
+        protocol: TCP
+    nodePort:
+      - protocol: TCP
+        port: 15672
+        targetPort: 15672
+        nodePort: 30002

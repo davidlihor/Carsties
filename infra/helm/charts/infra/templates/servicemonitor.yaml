@@ -1,0 +1,22 @@
+{{- range .Values.deployments }}
+{{- if .monitoring }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .name }}-service-monitor
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  namespaceSelector:
+    matchNames:
+      - default
+  selector:
+    matchLabels:
+      app: {{ .name }}
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 10s
+{{- end }}
+{{- end }}

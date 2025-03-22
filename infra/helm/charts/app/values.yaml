@@ -1,0 +1,129 @@
+deployments:
+  - name: auction
+    replicas: 1
+    image: david/auction-svc
+    imagePullPolicy: Never
+    config: true
+    secrets: true
+    ports:
+      - name: http
+        containerPort: 80
+        protocol: TCP
+      - name: grpc
+        containerPort: 7050
+        protocol: TCP
+
+  - name: search
+    replicas: 1
+    image: david/search-svc
+    imagePullPolicy: Never
+    config: true
+    secrets: true
+    ports:
+      - name: http
+        containerPort: 80
+        protocol: TCP
+
+  - name: bid
+    replicas: 1
+    image: david/bid-svc
+    imagePullPolicy: Never
+    config: true
+    secrets: true
+    ports:
+      - name: http
+        containerPort: 80
+        protocol: TCP
+
+  - name: notification
+    replicas: 1
+    image: david/notification-svc
+    imagePullPolicy: Never
+    config: true
+    secrets: true
+    ports:
+      - name: http
+        containerPort: 80
+        protocol: TCP
+
+  - name: gateway
+    replicas: 1
+    image: david/gateway-svc
+    imagePullPolicy: Never
+    config: "true"
+    secrets: "true"
+    ports:
+      - name: http
+        containerPort: 80
+        protocol: TCP
+
+  - name: identity
+    replicas: 1
+    image: quay.io/keycloak/keycloak
+    imagePullPolicy: Never
+    volumes:
+      - name: keycloak
+        mountPath: /opt/keycloak/data/import/realm-export.json
+    args:
+      - start-dev
+      - "--import-realm"
+    config: true
+    secrets: true
+    ports:
+      - name: http
+        containerPort: 8080
+        protocol: TCP
+
+  - name: webapp
+    replicas: 1
+    image: david/web-app
+    imagePullPolicy: Never
+    config: true
+    secrets: true
+    ports:
+      - name: http
+        containerPort: 3000
+        protocol: TCP
+
+  - name: postgres
+    replicas: 1
+    image: postgres
+    imagePullPolicy: Never
+    volumes:
+      - name: postgres
+        mountPath: /var/lib/postgresql/data
+    config: true
+    secrets: true
+    ports:
+      - name: http
+        containerPort: 5432
+        protocol: TCP
+
+  - name: mongodb
+    replicas: 1
+    image: mongo
+    imagePullPolicy: Never
+    volumes:
+      - name: mongodb
+        mountPath: /data/db
+    secrets: true
+    ports:
+      - name: http
+        containerPort: 27017
+        protocol: TCP
+
+  - name: rabbitmq
+    replicas: 1
+    image: rabbitmq:3-management
+    imagePullPolicy: Never
+    volumes:
+      - name: rabbitmq
+        mountPath: /var/lib/rabbitmq
+    secrets: true
+    ports:
+      - name: rbmq-mgmt-port
+        containerPort: 15672
+        protocol: TCP
+      - name: rbmq-msg-port
+        containerPort: 5672
+        protocol: TCP

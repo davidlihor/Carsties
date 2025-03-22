@@ -11,6 +11,7 @@ using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Polly;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -102,6 +103,8 @@ app.MapCarter();
 app.MapGraphQL();
 app.MapNitroApp();
 app.UseVoyager("/graphql", "/ui/voyager");
+app.UseMetricServer();
+app.UseHttpMetrics();
 
 var retryPolicy = Policy
     .Handle<NpgsqlException>()
