@@ -7,6 +7,7 @@ src/IdentityService
 infra/devcerts/*
 devcerts/*
 .vscode
+infra/helm/charts/*.tgz
 
 # dotenv files
 .env

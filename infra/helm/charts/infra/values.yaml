@@ -107,8 +107,6 @@ deployments:
       KC_DB_URL: jdbc:postgresql://postgres-clusterip:5432/keycloak
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: postgresSecretPw
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
     ports:
       - name: http
         containerPort: 8080
@@ -126,7 +124,7 @@ deployments:
     secrets:
       AUTH_SECRET: thisisevenmoresecretthanprevioussecrets
       CLIENT_ID: nextApp
-      CLIENT_SECRET: nXjpE7eDgHy2OktqQg9nTVruXlTBxdVY
+      CLIENT_SECRET: mj1KVXSlCK2eWa9BdwkFfMaIS0Q64CJr
       REALM: carsties-auth
     ports:
       - name: http
