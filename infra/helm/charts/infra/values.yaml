@@ -103,6 +103,8 @@ deployments:
       KC_PROXY: edge
       KC_HOSTNAME: https://id.carsties.local
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      # KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      # KC_BOOTSTRAP_ADMIN_PASSWORD: admin
     secrets:
       KC_DB_URL: jdbc:postgresql://postgres-clusterip:5432/keycloak
       KC_DB_USERNAME: postgres
@@ -122,7 +124,7 @@ deployments:
       ID_URL_INTERNAL: http://identity-clusterip
       NOTIFY_URL: https://api.carsties.local/notification
     secrets:
-      AUTH_SECRET: thisisevenmoresecretthanprevioussecrets
+      AUTH_SECRET: 116z3YPpzKuBctPG00W2nHW7rbehdTC81KkNVedHJMY=
       CLIENT_ID: nextApp
       CLIENT_SECRET: mj1KVXSlCK2eWa9BdwkFfMaIS0Q64CJr
       REALM: carsties-auth

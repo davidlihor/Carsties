@@ -7,7 +7,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 current_dir=$(pwd)
-
+minikube cp ./keycloak-config/data/import/keycloak.json /data/import/keycloak.json
 
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
@@ -21,7 +21,7 @@ helm install carsties $current_dir/infra/helm --namespace default --create-names
 
 cd "$current_dir"/devcerts
 mkcert -key-file carsties.local.key -cert-file carsties.local.crt app.carsties.local api.carsties.local id.carsties.local
-mkcert -key-file monitoring.local.key -cert-file monitoring.local.crt prometheus.monitoring.local grafana.monitoring.local
+chmod -R +rwx .
 
 cd "$current_dir"/infra/devcerts
 mkcert -key-file carsties-app-tls.key -cert-file carsties-app-tls.crt app.carsties.local api.carsties.local id.carsties.local

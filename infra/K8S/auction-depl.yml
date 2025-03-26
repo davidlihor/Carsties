@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auction-svc
+spec:
+  selector:
+    matchLabels:
+      app: auction-svc
+  template:
+    metadata:
+      labels:
+        app: auction-svc
+    spec:
+      containers:
+        - name: auction-svc
+          image: david/auction-svc
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ConnectionStrings__Database
+              valueFrom: 
+                secretKeyRef:
+                  name: auction-secret
+                  key: connectionString
+            - name: RabbitMQ__Username
+              valueFrom: 
+                secretKeyRef:
+                  name: rabbit-secret
+                  key: username
+            - name: RabbitMQ__Password
+              valueFrom: 
+                secretKeyRef:
+                  name: rabbit-secret
+                  key: password
+            - name: JWT__Authority
+              valueFrom:
+                secretKeyRef:
+                  name: auction-secret
+                  key: authority
+            - name: JWT__Issuer
+              valueFrom:
+                secretKeyRef:
+                  name: auction-secret
+                  key: issuer
+            - name: JWT__ClientId
+              valueFrom:
+                secretKeyRef:
+                  name: auction-secret
+                  key: clientId
+            - name: JWT__Audience
+              valueFrom:
+                secretKeyRef:
+                  name: auction-secret
+                  key: audience
+          envFrom:
+            - configMapRef:
+                name: auction-svc-config
+          ports:
+            - containerPort: 80
+              name: web
+            - containerPort: 7050
+              name: grpc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auction-clusterip
+spec:
+  type: ClusterIP
+  selector:
+    app: auction-svc
+  ports:
+    - port: 80
+      targetPort: 80
+      name: web
+    - port: 7050
+      targetPort: 7050
+      name: grpc
