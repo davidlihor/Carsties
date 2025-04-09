@@ -22,6 +22,9 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: password
+          envFrom:
+            - configMapRef:
+                name: postgres-svc-config
           ports:
             - containerPort: 5432
           volumeMounts:
