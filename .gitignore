@@ -3,9 +3,7 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
-infra/devcerts/*
-devcerts/*
-.vscode
+**/devcerts
 infra/helm/charts/*.tgz
 
 # dotenv files

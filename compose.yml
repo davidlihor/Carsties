@@ -1,0 +1,247 @@
+services:
+  postgres:
+    container_name: PostgreSQL
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgrespw
+      - POSTGRES_DB=keycloak
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - carsties_network
+
+  mongodb:
+    container_name: MongoDB
+    image: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=mongopw
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb:/data/db
+    networks:
+      - carsties_network
+
+  rabbitmq:
+    container_name: RabbitMQ
+    image: rabbitmq:3-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbit
+      - RABBITMQ_DEFAULT_PASS=rabbitPw
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - carsties_network
+
+  redis-cache:
+    container_name: Redis
+    image: redis
+    ports:
+      - 6379:6379
+    networks:
+      - carsties_network
+
+  auction-svc:
+    container_name: Auction.API
+    image: davidlihor/auction-svc:latest
+    build:
+      context: .
+      dockerfile: src/AuctionService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80;http://+:7050
+      - ConnectionStrings__Database=Server=postgres;User Id=postgres;Password=postgrespw;Database=auctions
+      - ConnectionStrings__Redis=redis-cache
+      - JWT__Authority=http://keycloak-svc:8080/realms/carsties-auth
+      - JWT__Issuer=https://id.carsties.local/realms/carsties-auth
+      - JWT__ClientId=nextApp
+      - JWT__Audience=account
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=rabbit
+      - RabbitMQ__Password=rabbitPw
+      - Kestrel__Endpoints__Grpc__Protocols=Http2
+      - Kestrel__Endpoints__Grpc__Url=http://+:7050
+      - Kestrel__Endpoints__WebApi__Protocols=Http1
+      - Kestrel__Endpoints__WebApi__Url=http://+:80
+    ports:
+      - 7000:80
+      - 7050:7050
+    networks:
+      - carsties_network
+    depends_on:
+      - postgres
+      - redis-cache
+      - keycloak-svc
+      - rabbitmq
+
+  bid-svc:
+    container_name: Bid.API
+    image: davidlihor/bid-svc:latest
+    build:
+      context: .
+      dockerfile: src/BiddingService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__MongoDB=mongodb://root:mongopw@MongoDB
+      - JWT__Authority=http://keycloak-svc:8080/realms/carsties-auth
+      - JWT__Issuer=https://id.carsties.local/realms/carsties-auth
+      - JWT__ClientId=nextApp
+      - JWT__Audience=account
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=rabbit
+      - RabbitMQ__Password=rabbitPw
+      - GrpcAuction=http://auction-svc:7050
+    ports:
+      - 7003:80
+    networks:
+      - carsties_network
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - auction-svc
+      - keycloak-svc
+
+  notification-svc:
+    container_name: Notification.API
+    image: davidlihor/notification-svc:latest
+    build:
+      context: .
+      dockerfile: src/NotificationService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=rabbit
+      - RabbitMQ__Password=rabbitPw
+    ports:
+      - 7004:80
+    networks:
+      - carsties_network
+    depends_on:
+      - rabbitmq
+
+  search-svc:
+    container_name: Search.API
+    image: davidlihor/search-svc:latest
+    build:
+      context: .
+      dockerfile: src/SearchService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__MongoDB=mongodb://root:mongopw@mongodb
+      - AuctionServiceUrl=http://auction-svc
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=rabbit
+      - RabbitMQ__Password=rabbitPw
+    ports:
+      - 7001:80
+    networks:
+      - carsties_network
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - auction-svc
+
+  gateway-svc:
+    container_name: Gateway
+    image: davidlihor/gateway-svc:latest
+    build:
+      context: .
+      dockerfile: src/GatewayService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:80
+      - Cors_Allowed_Origins=https://app.carsties.local,http://localhost:3000
+      - JWT__Authority=http://keycloak-svc:8080/realms/carsties-auth
+      - JWT__Issuer=https://id.carsties.local/realms/carsties-auth
+      - JWT__ClientId=nextApp
+      - JWT__Audience=account
+    networks:
+      - carsties_network
+    depends_on:
+      - auction-svc
+      - bid-svc
+      - search-svc
+      - notification-svc
+      - keycloak-svc
+
+  keycloak-svc:
+    container_name: Keycloak
+    image: quay.io/keycloak/keycloak:latest
+    command: 
+      - start-dev
+      - --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_PORT: 5432
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgrespw
+      # KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      # KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_PROXY: edge
+      KC_HOSTNAME: https://id.carsties.local
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: true
+    volumes:
+      - ./keycloak-config/keycloak.json:/opt/keycloak/data/import/realm-export.json
+    networks:
+      - carsties_network
+    depends_on:
+      - postgres
+
+  web-app:
+    container_name: NextJS
+    image: davidlihor/web-app:latest
+    build:
+      context: .
+      dockerfile: frontend/web-app/Dockerfile
+    environment:
+      - AUTH_SECRET=116z3YPpzKuBctPG00W2nHW7rbehdTC81KkNVedHJMY=
+      - AUTH_URL=https://app.carsties.local
+      - AUTH_URL_INTERNAL=http://web-app:3000
+      - API_URL=http://gateway-svc
+      - ID_URL=https://id.carsties.local
+      - ID_URL_INTERNAL=http://keycloak-svc:8080
+      - NOTIFY_URL=https://api.carsties.local/notification
+      - CLIENT_ID=nextApp
+      - CLIENT_SECRET=mj1KVXSlCK2eWa9BdwkFfMaIS0Q64CJr
+      - REALM=carsties-auth
+    volumes:
+      - web-app:/var/lib/web/data
+    networks:
+      - carsties_network
+    depends_on:
+      - keycloak-svc
+      - gateway-svc
+
+  nginx:
+    container_name: Nginx
+    image: nginx:latest
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./devcerts:/etc/nginx/certs
+    networks:
+      - carsties_network
+    depends_on:
+      - web-app
+      - keycloak-svc
+      - gateway-svc
+
+volumes:
+  postgres:
+  mongodb:
+  web-app:
+
+networks:
+  carsties_network:
+    driver: bridge

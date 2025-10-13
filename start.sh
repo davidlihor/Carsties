@@ -1,74 +1,90 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -e
-if [ "$EUID" -ne 0 ]; then
+set -euo pipefail
+
+if [[ "$EUID" -ne 0 ]]; then
     echo "Please, run with sudo command"
     exit 1;
 fi
 
-current_dir=$(pwd)
-minikube cp ./keycloak-config/data/import/keycloak.json /data/import/keycloak.json
+command -v mkcert >/dev/null || { echo "Error: mkcert is required, install it first"; exit 1; }
+command -v kubectl >/dev/null || { echo "Error: kubectl is required, install it first"; exit 1; }
 
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm repo update
-
-helm dependency update $current_dir/infra/helm
-helm install nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
-helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
-helm install carsties $current_dir/infra/helm --namespace default --create-namespace
-
-
-cd "$current_dir"/devcerts
-mkcert -key-file carsties.local.key -cert-file carsties.local.crt app.carsties.local api.carsties.local id.carsties.local
-chmod -R +rwx .
-
-cd "$current_dir"/infra/devcerts
-mkcert -key-file carsties-app-tls.key -cert-file carsties-app-tls.crt app.carsties.local api.carsties.local id.carsties.local
-mkcert -key-file monitoring-tls.key -cert-file monitoring-tls.crt prometheus.monitoring.local grafana.monitoring.local
-
-
-cd "$current_dir"
-CERTS_DIR="$current_dir"/infra/devcerts
+CERTS_DIR="$(pwd)/devcerts"
 
 if [ ! -d "$CERTS_DIR" ]; then
-    echo "Cert folder not found";
-    exit 1
+    mkdir -p "$CERTS_DIR"
+    echo "Cert folder created at $CERTS_DIR."
 fi
+
+cd "$CERTS_DIR"
+
+mkcert -key-file carsties-tls.key -cert-file carsties-tls.crt app.carsties.local api.carsties.local id.carsties.local
+mkcert -key-file monitoring-tls.key -cert-file monitoring-tls.crt prometheus.monitoring.local grafana.monitoring.local
+
+chmod -R +rwx .
+chown -R $SUDO_USER:$SUDO_USER .
 
 for cert in "$CERTS_DIR"/*.crt; do
-    [ -e "$cert" ] || {
-        echo "No certificate found in $CERTS_DIR";
-        exit 1;
-    }
-
     secret_name=$(basename "$cert" .crt)
-    key="${CERTS_DIR}/${secret_name}.key"
-    
-    if [ ! -f "$key" ]; then
-        echo "WARNING! Key for $cert not found"
-        continue;
-    fi
+    key="$CERTS_DIR/$secret_name.key"
 
-    kubectl delete secret "$secret_name" || true
-    
-    if [[ "$key" != *"monitoring"* ]]; then
-        kubectl create secret tls "$secret_name" --key="$key" --cert="$cert"
+    if [[ "$secret_name" == monitoring* ]]; then
+        ns=monitoring
+    elif [[ "$secret_name" == argocd* ]]; then
+        ns=argocd
     else
-        kubectl create secret tls "$secret_name" --key="$key" --cert="$cert" --namespace=monitoring
+        ns=default
     fi
-    
-    echo "Secret $secret_name created from $key and $cert"
-done;
 
+    kubectl create namespace "$ns" &>/dev/null || true
+    kubectl delete secret "$secret_name" --namespace="$ns" &>/dev/null || true
+    
+    if ! kubectl create secret tls "$secret_name" \
+        --key="$key" \
+        --cert="$cert" \
+        --namespace="$ns" &>/dev/null; then
+        echo "⚠️  Failed to create secret \"$secret_name\" in namespace \"$ns\""
+    else
+        echo "✅  Secret \"$secret_name\" created in namespace \"$ns\""
+    fi
+done
 
 IP="127.0.0.1"
-DOMAIN="id.carsties.local app.carsties.local api.carsties.local prometheus.monitoring.local grafana.monitoring.local"
-LINE="$IP $DOMAIN"
+DOMAINS=(
+  app.carsties.local
+  api.carsties.local
+  id.carsties.local
+  
+  prometheus.monitoring.local
+  grafana.monitoring.local
+)
 
-if grep -Fxq "$LINE" /etc/hosts; then
-    echo -e "Domains already added: $DOMAIN"
-else
-    echo -e "\n#Custom\n$LINE" | tee -a /etc/hosts > /dev/null
-    echo "Domains added: $DOMAIN"
+MARKER="#Carsties"
+HOSTS_FILE="/etc/hosts"
+NEW_LINE="$IP ${DOMAINS[*]}"
+
+TMP_FILE=$(mktemp)
+trap 'rm -f "$TMP_FILE"' EXIT
+
+awk -v marker="$MARKER" -v newline="$NEW_LINE" '
+  $0 == marker {
+    print
+    getline
+    print newline
+    next
+  }
+  { print }
+' "$HOSTS_FILE" > "$TMP_FILE"
+
+
+if ! grep -Fxq "$MARKER" "$HOSTS_FILE"; then
+  {
+    echo ""
+    echo "$MARKER"
+    echo "$NEW_LINE"
+  } >> "$TMP_FILE"
 fi
+
+cp "$TMP_FILE" "$HOSTS_FILE"
+echo -e "\nThe /etc/hosts file has been updated under the $MARKER marker"
