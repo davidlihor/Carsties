@@ -1,5 +1,5 @@
 {{- range .Values.deployments }}
-{{- if .monitoring }}
+{{- if and .monitoring $.Values.global.monitoring }}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -7,14 +7,14 @@ metadata:
   name: {{ .name }}-service-monitor
   namespace: monitoring
   labels:
-    release: prometheus
+    release: promstack
 spec:
   namespaceSelector:
     matchNames:
-      - default
+      - {{ $.Values.global.namespace }}
   selector:
     matchLabels:
-      app: {{ .name }}
+      app: {{ .name }}-clusterip
   endpoints:
   - port: http
     path: /metrics

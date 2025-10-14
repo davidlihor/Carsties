@@ -1,6 +1,5 @@
 {{- range .Values.deployments }}
 {{- range .volumes }}
-{{- if ne .name "keycloak" }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -17,6 +16,5 @@ spec:
   storageClassName: {{ .storageClass }}
   {{- end }}
   volumeMode: Filesystem
-{{- end }}
 {{- end }}
 {{- end }}

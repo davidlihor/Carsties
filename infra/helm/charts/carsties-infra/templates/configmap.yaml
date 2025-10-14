@@ -1,0 +1,201 @@
+{{- range .Values.deployments }}
+{{- if .config }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .name }}-config
+  namespace: {{ $.Values.global.namespace }}
+data:
+  {{- toYaml .config | nindent 2 }}
+{{- end }}
+{{- end }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: yarp-config
+  namespace: {{ $.Values.global.namespace }}
+data:
+  appsettings.Production.json: |
+    {
+      "ReverseProxy": {
+        "Routes": {
+          "auctionRead": {
+            "ClusterId": "auctionCluster",
+            "Match": {
+              "Path": "/auctions/{**catch-all}",
+              "Methods": [
+                "GET"
+              ]
+            },
+            "Transforms": [
+              {
+                "PathPattern": "api/auctions/{**catch-all}"
+              }
+            ]
+          },
+          "auctionWrite": {
+            "ClusterId": "auctionCluster",
+            "AuthorizationPolicy": "default",
+            "Match": {
+              "Path": "/auctions/{**catch-all}",
+              "Methods": [
+                "POST",
+                "PUT",
+                "DELETE"
+              ]
+            },
+            "Transforms": [
+              {
+                "PathPattern": "api/auctions/{**catch-all}"
+              }
+            ]
+          },
+          "bidsRead": {
+            "ClusterId": "bidsCluster",
+            "Match": {
+              "Path": "/bids/{**catch-all}",
+              "Methods": [
+                "GET"
+              ]
+            },
+            "Transforms": [
+              {
+                "PathPattern": "api/bids/{**catch-all}"
+              }
+            ]
+          },
+          "bidsWrite": {
+            "ClusterId": "bidsCluster",
+            "AuthorizationPolicy": "default",
+            "Match": {
+              "Path": "/bids",
+              "Methods": [
+                "POST"
+              ]
+            },
+            "Transforms": [
+              {
+                "PathPattern": "api/bids"
+              }
+            ]
+          },
+          "searchRoute": {
+            "ClusterId": "searchCluster",
+            "Match": {
+              "Path": "/search/{**catch-all}",
+              "Methods": [
+                "GET"
+              ]
+            },
+            "Transforms": [
+              {
+                "PathPattern": "api/search/{**catch-all}"
+              }
+            ]
+          },
+          "notificationRoute": {
+            "ClusterId": "notificationCluster",
+            "CorsPolicy": "CORSPolicy",
+            "Match": {
+              "Path": "/notification/{**catch-all}"
+            }
+          }
+        },
+        "Clusters": {
+          "auctionCluster": {
+            "Destinations": {
+              "auctionAPI": {
+                "Address": "http://auction-clusterip"
+              }
+            }
+          },
+          "bidsCluster": {
+            "Destinations": {
+              "bidAPI": {
+                "Address": "http://bid-clusterip"
+              }
+            }
+          },
+          "searchCluster": {
+            "Destinations": {
+              "searchAPI": {
+                "Address": "http://search-clusterip"
+              }
+            }
+          },
+          "notificationCluster": {
+            "Destinations": {
+              "notificationAPI": {
+                "Address": "http://notification-clusterip"
+              }
+            }
+          }
+        }
+      }
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-config
+  namespace: {{ $.Values.global.namespace }}
+data:
+  realm-export.json: |
+    [
+      {
+        "realm": "carsties-auth",
+        "enabled": true,
+        "registrationAllowed": true,
+        "loginWithEmailAllowed": true,
+        "duplicateEmailsAllowed": false,
+        "resetPasswordAllowed": true,
+        "verifyEmail": false,
+        "clients": [
+          {
+            "clientId": "nextApp",
+            "secret": "mj1KVXSlCK2eWa9BdwkFfMaIS0Q64CJr",
+            "protocol": "openid-connect",
+            "publicClient": false,
+            "redirectUris": [
+              "https://app.carsties.local/*",
+              "http://web-app:3000/*"
+            ],
+            "webOrigins": ["+"],
+            "protocolMappers": [
+              {
+                "name": "audience mapper",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-audience-mapper",
+                "consentRequired": false,
+                "config": {
+                  "included.client.audience": "nextApp",
+                  "id.token.claim": "true",
+                  "access.token.claim": "true"
+                }
+              }
+            ]
+          }
+        ],
+        "users": [
+          {
+            "username": "testuser",
+            "enabled": true,
+            "emailVerified": true,
+            "firstName": "Test",
+            "lastName": "User",
+            "email": "testuser@email.com",
+            "credentials": [
+              {
+                "type": "password",
+                "value": "testpass",
+                "temporary": false
+              }
+            ]
+          }
+        ]
+      }
+    ]

@@ -1,8 +1,7 @@
 deployments:
   - name: auction
     replicas: 1
-    image: david/auction-svc
-    imagePullPolicy: IfNotPresent
+    image: davidlihor/auction-svc
     config: true
     secrets: true
     ports:
@@ -15,8 +14,7 @@ deployments:
 
   - name: search
     replicas: 1
-    image: david/search-svc
-    imagePullPolicy: IfNotPresent
+    image: davidlihor/search-svc
     config: true
     secrets: true
     ports:
@@ -26,8 +24,7 @@ deployments:
 
   - name: bid
     replicas: 1
-    image: david/bid-svc
-    imagePullPolicy: IfNotPresent
+    image: davidlihor/bid-svc
     config: true
     secrets: true
     ports:
@@ -37,8 +34,7 @@ deployments:
 
   - name: notification
     replicas: 1
-    image: david/notification-svc
-    imagePullPolicy: IfNotPresent
+    image: davidlihor/notification-svc
     config: true
     secrets: true
     ports:
@@ -48,10 +44,13 @@ deployments:
 
   - name: gateway
     replicas: 1
-    image: david/gateway-svc
-    imagePullPolicy: IfNotPresent
-    config: "true"
-    secrets: "true"
+    image: davidlihor/gateway-svc
+    volumes:
+      - name: yarp-config
+        mountPath: /app/appsettings.Production.json
+        subPath: appsettings.Production.json
+    config: true
+    secrets: true
     ports:
       - name: http
         containerPort: 80
@@ -60,13 +59,13 @@ deployments:
   - name: identity
     replicas: 1
     image: quay.io/keycloak/keycloak
-    imagePullPolicy: IfNotPresent
     volumes:
-      - name: keycloak
+      - name: keycloak-config
         mountPath: /opt/keycloak/data/import/realm-export.json
+        subPath: realm-export.json
     args:
       - start-dev
-      - "--import-realm"
+      - --import-realm
     config: true
     secrets: true
     ports:
@@ -76,8 +75,7 @@ deployments:
 
   - name: webapp
     replicas: 1
-    image: david/web-app
-    imagePullPolicy: IfNotPresent
+    image: davidlihor/web-app
     config: true
     secrets: true
     ports:
@@ -88,10 +86,9 @@ deployments:
   - name: postgres
     replicas: 1
     image: postgres
-    imagePullPolicy: IfNotPresent
     volumes:
       - name: postgres
-        mountPath: /var/lib/postgresql/data
+        mountPath: /postgres-data
     config: true
     secrets: true
     ports:
@@ -102,7 +99,6 @@ deployments:
   - name: mongodb
     replicas: 1
     image: mongo
-    imagePullPolicy: IfNotPresent
     volumes:
       - name: mongodb
         mountPath: /data/db
@@ -115,7 +111,6 @@ deployments:
   - name: rabbitmq
     replicas: 1
     image: rabbitmq:3-management
-    imagePullPolicy: IfNotPresent
     volumes:
       - name: rabbitmq
         mountPath: /var/lib/rabbitmq

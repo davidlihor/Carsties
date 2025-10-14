@@ -18,10 +18,6 @@ spec:
       containers:
         - name: {{ .name }}
           image: "{{ .image }}"
-          
-          {{- if .imagePullPolicy }}
-          imagePullPolicy: {{ .imagePullPolicy }}
-          {{- end }}
 
           {{- if .args }}
           args:
@@ -57,17 +53,25 @@ spec:
           volumeMounts:
             {{- range .volumes }}
             - name: {{ .name }}-volume
-              mountPath: {{ .mountPath }}           
-            {{- end}}
-          {{- end}}
+              mountPath: {{ .mountPath }}  
+              {{- if hasSuffix "-config" .name }}
+              subPath: {{ .subPath }}
+              {{- end }}         
+            {{- end }}
+          {{- end }}
 
       {{- if .volumes }}
       volumes:
         {{- range .volumes }}
         - name: {{ .name }}-volume
+          {{- if hasSuffix "-config" .name }}
+          configMap:
+            name: {{ .name }}
+          {{- else }}
           persistentVolumeClaim:
             claimName: {{ .name }}-pvc
-        {{- end}}
-      {{- end}}
+          {{- end }}
+        {{- end }}
+      {{- end }}
 
 {{- end }}

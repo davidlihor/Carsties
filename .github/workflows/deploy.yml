@@ -13,22 +13,22 @@ jobs:
     strategy:
       matrix:
         service:
-          - name: "daviddev24/auction-svc"
+          - name: "davidlihor/auction-svc"
             path: "src/AuctionService"
-          - name: "daviddev24/search-svc"
+          - name: "davidlihor/search-svc"
             path: "src/SearchService"
-          - name: "daviddev24/bid-svc"
+          - name: "davidlihor/bid-svc"
             path: "src/BiddingService"
-          - name: "daviddev24/gateway-svc"
+          - name: "davidlihor/gateway-svc"
             path: "src/GatewayService"  
-          - name: "daviddev24/notification-svc"
+          - name: "davidlihor/notification-svc"
             path: "src/NotificationService"    
-          - name: "daviddev24/web-app"
+          - name: "davidlihor/web-app"
             path: "frontend/web-app"          
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 2
 

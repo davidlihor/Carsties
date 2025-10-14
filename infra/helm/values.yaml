@@ -1,3 +1,5 @@
 global:
   environment: Development
   namespace: default
+  monitoring: false
+  registry: null

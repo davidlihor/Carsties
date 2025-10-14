@@ -60,7 +60,7 @@ services:
       - JWT__Authority=http://keycloak-svc:8080/realms/carsties-auth
       - JWT__Issuer=https://id.carsties.local/realms/carsties-auth
       - JWT__ClientId=nextApp
-      - JWT__Audience=account
+      - JWT__Audience=nextApp
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=rabbit
       - RabbitMQ__Password=rabbitPw
@@ -92,7 +92,7 @@ services:
       - JWT__Authority=http://keycloak-svc:8080/realms/carsties-auth
       - JWT__Issuer=https://id.carsties.local/realms/carsties-auth
       - JWT__ClientId=nextApp
-      - JWT__Audience=account
+      - JWT__Audience=nextApp
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=rabbit
       - RabbitMQ__Password=rabbitPw
@@ -162,7 +162,7 @@ services:
       - JWT__Authority=http://keycloak-svc:8080/realms/carsties-auth
       - JWT__Issuer=https://id.carsties.local/realms/carsties-auth
       - JWT__ClientId=nextApp
-      - JWT__Audience=account
+      - JWT__Audience=nextApp
     networks:
       - carsties_network
     depends_on:
@@ -184,8 +184,8 @@ services:
       KC_DB_URL_PORT: 5432
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: postgrespw
-      # KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      # KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KC_PROXY: edge
       KC_HOSTNAME: https://id.carsties.local
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: true
