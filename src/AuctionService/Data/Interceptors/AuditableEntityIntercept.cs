@@ -15,8 +15,8 @@ public class AuditableEntityIntercept(IHttpContextAccessor contextAccessor) : Sa
         return base.SavingChanges(eventData, result);
     }
 
-    public override ValueTask<InterceptionResult<int>> 
-        SavingChangesAsync(DbContextEventData eventData, 
+    public override ValueTask<InterceptionResult<int>>
+        SavingChangesAsync(DbContextEventData eventData,
         InterceptionResult<int> result,
         CancellationToken cancellationToken = new())
     {
@@ -27,7 +27,7 @@ public class AuditableEntityIntercept(IHttpContextAccessor contextAccessor) : Sa
     private void UpdateEntity(DbContext context)
     {
         var userId = contextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        
+
         foreach (var entry in context.ChangeTracker.Entries<IAuditable>())
         {
             switch (entry.State)

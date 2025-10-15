@@ -14,7 +14,7 @@ public class CachedBasketRepository(IAuctionRepository repository, IMapper mappe
 
     public async Task<AuctionDto> GetAuctionByIdAsync(Guid id)
     {
-        return await cache.GetOrCreateAsync($"auctions-{id}", async _ => 
+        return await cache.GetOrCreateAsync($"auctions-{id}", async _ =>
             await repository.GetAuctionByIdAsync(id), null, ["auctions"]);
     }
 

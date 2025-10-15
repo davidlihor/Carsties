@@ -12,10 +12,10 @@ using WebMotions.Fake.Authentication.JwtBearer;
 
 namespace AuctionService.IntegrationTests.Fixtures;
 
-public class CustomWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime 
+public class CustomWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgreSqlContainer = new PostgreSqlBuilder().Build();
-    
+
     public async Task InitializeAsync()
     {
         await _postgreSqlContainer.StartAsync();
@@ -33,7 +33,7 @@ public class CustomWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetim
                 options.UseNpgsql(_postgreSqlContainer.GetConnectionString());
             });
             services.EnsureDbCreated<DataContext>();
-            
+
             services.AddMassTransitTestHarness();
             services.AddAuthentication(FakeJwtBearerDefaults.AuthenticationScheme).AddFakeJwtBearer(options =>
             {

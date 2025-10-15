@@ -14,7 +14,7 @@ namespace AuctionService.Controllers;
 public class AuctionsEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
-    { 
+    {
         var group = app.MapGroup("api/auctions");
 
         group.MapGet("", GetAuctions).WithName("GetAuctions");
@@ -39,23 +39,23 @@ public class AuctionsEndpoints : ICarterModule
         {
             return Results.BadRequest(validationResults);
         }
-        
+
         var auction = mapper.Map<Auction>(request);
         auction.Seller = httpContext.User.Identity.Name;
         repository.CreateAuction(auction);
-        
+
         //await cache.SetAsync($"auctions-{auction.Id}", newAuction, null, ["auctions"], ct);
-        
+
         await publishEndpoint.Publish(mapper.Map<AuctionCreated>(auction), ct);
         var result = await repository.SaveChangesAsync();
-        
-        return result ? 
-            Results.CreatedAtRoute(nameof(GetAuction), new { auction.Id }, mapper.Map<AuctionDto>(auction)) : 
+
+        return result ?
+            Results.CreatedAtRoute(nameof(GetAuction), new { auction.Id }, mapper.Map<AuctionDto>(auction)) :
             Results.BadRequest("Could not save changes to DB");
     }
 
     public static async Task<IResult> GetAuction(
-      //  HybridCache cache,
+        //  HybridCache cache,
         IAuctionRepository repository,
         Guid id,
         CancellationToken cancellationToken)
@@ -66,7 +66,7 @@ public class AuctionsEndpoints : ICarterModule
         //}
         // tags: ["auctions"],
         // cancellationToken: cancellationToken);
-        
+
         return auction is null ? Results.NotFound() : Results.Ok(auction);
     }
 
@@ -88,24 +88,24 @@ public class AuctionsEndpoints : ICarterModule
         CancellationToken cancellationToken)
     {
         var auction = await repository.GetAuctionModelById(id);
-        
-        if(auction is null) return Results.NotFound();
-        if(auction.Seller != httpContext.User.Identity.Name) return Results.Forbid();
-        
+
+        if (auction is null) return Results.NotFound();
+        if (auction.Seller != httpContext.User.Identity.Name) return Results.Forbid();
+
         auction.Product.Make = request.Make ?? auction.Product.Make;
         auction.Product.Model = request.Model ?? auction.Product.Model;
-        auction.Product.Color= request.Color ?? auction.Product.Color;
+        auction.Product.Color = request.Color ?? auction.Product.Color;
         auction.Product.Mileage = request.Mileage ?? auction.Product.Mileage;
         auction.Product.Year = request.Year ?? auction.Product.Year;
-        
+
         // await cache.SetAsync($"auctions-{auction.Id}",
         //     mapper.Map<AuctionDto>(auction), 
         //     tags: ["auctions"], 
         //     cancellationToken: cancellationToken);
-        
+
         await publishEndpoint.Publish(mapper.Map<AuctionUpdated>(auction), cancellationToken);
         var result = await repository.SaveChangesAsync();
-        
+
         return result ? Results.NoContent() : Results.BadRequest("Could not save changes to DB");
     }
 
@@ -118,16 +118,16 @@ public class AuctionsEndpoints : ICarterModule
         CancellationToken cancellationToken)
     {
         var auction = await repository.GetAuctionModelById(id);
-        
-        if(auction is null) return Results.NotFound();
-        if(auction.Seller != httpContext.User.Identity.Name) return Results.Forbid();
-        
+
+        if (auction is null) return Results.NotFound();
+        if (auction.Seller != httpContext.User.Identity.Name) return Results.Forbid();
+
         repository.DeleteAuction(auction);
         //await cache.RemoveAsync($"auctions-{id}", cancellationToken);
-        
+
         await publishEndpoint.Publish(new AuctionDeleted { Id = auction.Id }, cancellationToken);
         var result = await repository.SaveChangesAsync();
-        
+
         return result ? Results.NoContent() : Results.BadRequest("Could not save changes to DB");
     }
 }

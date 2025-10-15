@@ -5,12 +5,12 @@ using Polly.Extensions.Http;
 using Prometheus;
 using SearchService.Consumers;
 using SearchService.Data;
-using SearchService.Services;   
+using SearchService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddHttpClient<AuctionServiceHttpClient>().AddPolicyHandler(_ => 
+builder.Services.AddHttpClient<AuctionServiceHttpClient>().AddPolicyHandler(_ =>
     HttpPolicyExtensions
         .HandleTransientHttpError()
         .OrResult(msg => msg.StatusCode == HttpStatusCode.NotFound)
@@ -48,4 +48,4 @@ app.Lifetime.ApplicationStarted.Register(async () =>
 app.UseMetricServer();
 app.UseHttpMetrics();
 app.Run();
-public partial class Program {}
+public partial class Program { }

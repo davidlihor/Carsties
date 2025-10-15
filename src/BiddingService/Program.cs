@@ -12,7 +12,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<GrpcAuctionClient>();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseMongoDB(builder.Configuration.GetConnectionString("MongoDB")!,"BidDb");
+    options.UseMongoDB(builder.Configuration.GetConnectionString("MongoDB")!, "BidDb");
 });
 builder.Services.AddHostedService<CheckAuctionFinished>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

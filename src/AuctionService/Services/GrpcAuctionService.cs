@@ -9,7 +9,7 @@ public class GrpcAuctionService(DataContext dbContext) : GrpcAuction.GrpcAuction
     {
         Console.WriteLine("--> Received grpc request for auction");
         var auction = await dbContext.Auctions.FindAsync(Guid.Parse(request.Id));
-        if(auction is null) throw new RpcException(new Status(StatusCode.NotFound, "Auction not found"));
+        if (auction is null) throw new RpcException(new Status(StatusCode.NotFound, "Auction not found"));
 
         var response = new GetAuctionResponse
         {

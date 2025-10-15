@@ -14,7 +14,7 @@ public class AuctionBusTests(CustomWebAppFactory factory) : IAsyncLifetime
 {
     private readonly HttpClient _httpClient = factory.CreateClient();
     private readonly ITestHarness _testHarness = factory.Services.GetTestHarness();
-    
+
     public Task InitializeAsync() => Task.CompletedTask;
     public Task DisposeAsync()
     {
@@ -30,10 +30,10 @@ public class AuctionBusTests(CustomWebAppFactory factory) : IAsyncLifetime
         // arrange
         var auction = DtoHelper.GetAuctionForCreate();
         _httpClient.SetFakeJwtBearerToken(AuthHelper.GetBearerForUser("bob"));
-        
+
         // act
         var response = await _httpClient.PostAsJsonAsync("api/auctions", auction);
-        
+
         // assert
         response.EnsureSuccessStatusCode();
         Assert.True(await _testHarness.Published.Any<AuctionCreated>());

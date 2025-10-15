@@ -11,7 +11,7 @@ public class AuctionServiceHttpClient(HttpClient httpClient, IConfiguration conf
             .Sort(x => x.Descending(x => x.UpdatedAt))
             .Project(x => x.UpdatedAt.ToString())
             .ExecuteFirstAsync();
-        
+
         return await httpClient.GetFromJsonAsync<List<Item>>(config["AuctionServiceUrl"] + "/api/auctions?date=" + lastUpdated);
     }
 }

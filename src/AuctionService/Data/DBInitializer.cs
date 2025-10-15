@@ -14,7 +14,7 @@ public static class DbInitializer
     private static async Task SeedData(DataContext context)
     {
         await context.Database.MigrateAsync();
-        
+
         if (context.Auctions.Any())
         {
             Console.WriteLine("Already have data - no need to seed");
@@ -182,7 +182,7 @@ public static class DbInitializer
                 }
             }
         };
-        
+
         await context.AddRangeAsync(auctions);
         await context.SaveChangesAsync();
     }

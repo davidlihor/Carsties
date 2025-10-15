@@ -14,7 +14,7 @@ namespace BiddingService.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class BidsController(
-    AppDbContext context, 
+    AppDbContext context,
     IMapper mapper,
     GrpcAuctionClient grpcClient,
     IPublishEndpoint publishEndpoint) : ControllerBase
@@ -24,9 +24,9 @@ public class BidsController(
     public async Task<ActionResult<BidDto>> PlaceBid(Guid auctionId, int amount)
     {
         var auction = await context.Auctions.FindAsync(auctionId) ?? grpcClient.GetAuction(auctionId);
-        if(auction is null) return BadRequest("Cannot accept bids on this auction");
+        if (auction is null) return BadRequest("Cannot accept bids on this auction");
 
-        if (auction.Seller == User.Identity?.Name) 
+        if (auction.Seller == User.Identity?.Name)
             return BadRequest("You cannot bid on your own auction");
 
         var bid = new Bid
@@ -41,17 +41,17 @@ public class BidsController(
             bid.BidStatus = BidStatus.Finished;
         }
         else
-        { 
+        {
             var highBid = await context.Bids
                 .Where(x => x.AuctionId == auctionId)
                 .OrderByDescending(x => x.Amount)
                 .FirstOrDefaultAsync();
-        
+
             if (highBid is not null && amount > highBid.Amount || highBid is null)
             {
                 bid.BidStatus = amount > auction.ReservePrice ? BidStatus.Accepted : BidStatus.AcceptedBelowReserved;
             }
-    
+
             if (highBid is not null && amount <= highBid.Amount)
             {
                 bid.BidStatus = BidStatus.TooLow;
@@ -60,7 +60,7 @@ public class BidsController(
         await context.Bids.AddAsync(bid);
         await context.SaveChangesAsync();
         await publishEndpoint.Publish(mapper.Map<BidPlaced>(bid));
-        
+
         return Ok(mapper.Map<BidDto>(bid));
     }
 
@@ -71,7 +71,7 @@ public class BidsController(
             .Where(x => x.AuctionId == auctionId)
             .OrderByDescending(x => x.BidTime)
             .ToListAsync();
-        
+
         return bids.Select(mapper.Map<BidDto>).ToList();
     }
 }

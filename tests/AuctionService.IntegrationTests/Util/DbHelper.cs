@@ -7,7 +7,7 @@ public static class DbHelper
 {
     public static void InitDbForTests<T>(T db)
     {
-        if(db is DataContext dataContext)
+        if (db is DataContext dataContext)
         {
             dataContext.Auctions.AddRange(GetAuctionsForTest());
             dataContext.SaveChanges();
@@ -42,7 +42,7 @@ public static class DbHelper
                     ImageUrl = ""
                 }
             },
-            
+
             new Auction
             {
                 Id = Guid.Parse("c8c3ec17-01bf-49db-82aa-1ef80b833a9f"),
@@ -60,7 +60,7 @@ public static class DbHelper
                     ImageUrl = ""
                 }
             },
-            
+
             new Auction
             {
                 Id = Guid.Parse("bbab4d5a-8565-48b1-9450-5ac2a5c4a654"),

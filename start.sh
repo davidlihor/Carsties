@@ -12,7 +12,7 @@ command -v kubectl >/dev/null || { echo "Error: kubectl is required, install it 
 
 CERTS_DIR="$(pwd)/devcerts"
 
-if [ ! -d "$CERTS_DIR" ]; then
+if [[ ! -d "$CERTS_DIR" ]]; then
     mkdir -p "$CERTS_DIR"
     echo "Cert folder created at $CERTS_DIR."
 fi

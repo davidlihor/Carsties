@@ -11,7 +11,7 @@ public class GrpcAuctionClient(ILogger<GrpcAuctionClient> logger, IConfiguration
         logger.LogInformation("Calling grpc service");
         var channel = GrpcChannel.ForAddress(config["GrpcAuction"]!);
         var client = new GrpcAuction.GrpcAuctionClient(channel);
-        var request = new GetAuctionRequest{Id = auctionId.ToString()};
+        var request = new GetAuctionRequest { Id = auctionId.ToString() };
 
         try
         {

@@ -19,10 +19,10 @@ public class ConsumerTests(CustomWebAppFactory factory) : IClassFixture<CustomWe
         // arrange
         var consumerHarness = _testHarness.GetConsumerHarness<AuctionCreatedConsumer>();
         var auction = _fixture.Create<AuctionCreated>();
-        
+
         // act
         await _testHarness.Bus.Publish(auction);
-        
+
         // assert
         Assert.True(await consumerHarness.Consumed.Any<AuctionCreated>());
         var item = await DB.Find<Item>().OneAsync(auction.Id.ToString());

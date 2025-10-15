@@ -13,7 +13,7 @@ public class AuctionType : ObjectType<Auction>
             .ResolveWith<Resolvers>(x => x.GetItem(default!, default!))
             .Description("Item which the auction belongs");
     }
-    
+
     private class Resolvers
     {
         public IQueryable<Product> GetItem([Service] DataContext context, [Parent] Auction auction)

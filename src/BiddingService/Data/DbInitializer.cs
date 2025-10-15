@@ -9,9 +9,9 @@ public static class DbInitializer
     {
         using var scope = app.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        
+
         await Policy.Handle<TimeoutException>()
-            .WaitAndRetryAsync(5,  retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+            .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
             .ExecuteAsync(async () => await context.Auctions.AnyAsync());
     }
 }

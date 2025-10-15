@@ -8,7 +8,7 @@ public class DataContext(DbContextOptions<DataContext> options) : DbContext(opti
 {
     public DbSet<Auction> Auctions { get; set; }
     public DbSet<Product> Items { get; set; }
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -18,7 +18,7 @@ public class DataContext(DbContextOptions<DataContext> options) : DbContext(opti
             .WithOne(i => i.Auction)
             .HasForeignKey<Product>(i => i.AuctionId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();

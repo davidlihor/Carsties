@@ -27,14 +27,14 @@ public class AuctionControllerTests
     private readonly IMapper _mapper;
     private readonly DefaultHttpContext _httpContext;
     private readonly CancellationToken _ct;
-    
+
     public AuctionControllerTests()
     {
         _fixture = new Fixture();
         _repository = new Mock<IAuctionRepository>();
         _publishEndpoint = new Mock<IPublishEndpoint>();
 
-        var mockMapper = new MapperConfiguration(config => 
+        var mockMapper = new MapperConfiguration(config =>
         {
             config.AddMaps(typeof(MappingProfiles).Assembly);
 
@@ -73,7 +73,7 @@ public class AuctionControllerTests
         // act
         var result = await AuctionsEndpoints.GetAuction(_repository.Object, auction.Id, _ct);
         var response = result as Ok<AuctionDto>;
-        
+
         // assert
         Assert.Equal(auction.Make, response.Value.Make);
         Assert.IsType<Ok<AuctionDto>>(result);
@@ -117,11 +117,11 @@ public class AuctionControllerTests
         var auction = _fixture.Create<CreateAuctionDto>();
         _repository.Setup(x => x.CreateAuction(It.IsAny<Auction>()));
         _repository.Setup(x => x.SaveChangesAsync()).ReturnsAsync(false);
-        
+
         // act
         var result = await AuctionsEndpoints.CreateAuction(auction, _repository.Object, _mapper, _httpContext, _publishEndpoint.Object, _ct);
         var response = result as BadRequest<string>;
-        
+
         // assert
         Assert.IsType<BadRequest<string>>(response);
     }
@@ -131,52 +131,52 @@ public class AuctionControllerTests
     {
         // arrange
         var auctionDto = _fixture.Create<UpdateAuctionDto>();
-        
-        var auction = _fixture.Build<Auction>().Without(x=> x.Product).Create();
+
+        var auction = _fixture.Build<Auction>().Without(x => x.Product).Create();
         auction.Product = _fixture.Build<Product>().Without(x => x.Auction).Create();
         auction.Seller = "user";
-        
-        _repository.Setup(x => x.GetAuctionModelById(It.IsAny<Guid>())).ReturnsAsync(auction); 
+
+        _repository.Setup(x => x.GetAuctionModelById(It.IsAny<Guid>())).ReturnsAsync(auction);
         _repository.Setup(x => x.SaveChangesAsync()).ReturnsAsync(true);
-        
+
         // act
         var result = await AuctionsEndpoints.UpdateAuction(auction.Id, auctionDto, _repository.Object, _mapper, _httpContext, _publishEndpoint.Object, _ct);
         var response = result as NoContent;
-        
+
         // assert
         Assert.IsType<NoContent>(response);
     }
-    
+
     [Fact]
     public async Task UpdateAuction_WithInvalidUser_ReturnsForbid()
     {
         // arrange
         var auctionDto = _fixture.Create<UpdateAuctionDto>();
-        var auction = _fixture.Build<Auction>().Without(x=> x.Product).Create();
-        
-        _repository.Setup(x => x.GetAuctionModelById(It.IsAny<Guid>())).ReturnsAsync(auction); 
-        
+        var auction = _fixture.Build<Auction>().Without(x => x.Product).Create();
+
+        _repository.Setup(x => x.GetAuctionModelById(It.IsAny<Guid>())).ReturnsAsync(auction);
+
         // act
         var result = await AuctionsEndpoints.UpdateAuction(auction.Id, auctionDto, _repository.Object, _mapper, _httpContext, _publishEndpoint.Object, _ct);
         var response = result as ForbidHttpResult;
-        
+
         // assert
         Assert.IsType<ForbidHttpResult>(response);
     }
-    
+
     [Fact]
     public async Task UpdateAuction_WithInvalidGuid_ReturnsForbid()
     {
         // arrange
         var auctionDto = _fixture.Create<UpdateAuctionDto>();
-        var auction = _fixture.Build<Auction>().Without(x=> x.Product).Create();
-        
-        _repository.Setup(x => x.GetAuctionModelById(It.IsAny<Guid>())).ReturnsAsync(value: null); 
-        
+        var auction = _fixture.Build<Auction>().Without(x => x.Product).Create();
+
+        _repository.Setup(x => x.GetAuctionModelById(It.IsAny<Guid>())).ReturnsAsync(value: null);
+
         // act
         var result = await AuctionsEndpoints.UpdateAuction(auction.Id, auctionDto, _repository.Object, _mapper, _httpContext, _publishEndpoint.Object, _ct);
         var response = result as NotFound;
-        
+
         // assert
         Assert.IsType<NotFound>(response);
     }
@@ -185,42 +185,42 @@ public class AuctionControllerTests
     public async Task DeleteAuction_WithValidUser_ReturnsNoContent()
     {
         // arrange
-        var auction = _fixture.Build<Auction>().Without(x=> x.Product).Create();
+        var auction = _fixture.Build<Auction>().Without(x => x.Product).Create();
         auction.Seller = "user";
-        
+
         _repository.Setup(x => x.GetAuctionModelById(It.IsAny<Guid>())).ReturnsAsync(auction);
         _repository.Setup(x => x.SaveChangesAsync()).ReturnsAsync(true);
-        
+
         // act
         var result = await AuctionsEndpoints.DeleteAuction(Guid.NewGuid(), _repository.Object, _httpContext, _publishEndpoint.Object, _ct);
         var response = result as NoContent;
-        
+
         // assert
         Assert.IsType<NoContent>(response);
     }
-    
+
     [Fact]
     public async Task DeleteAuction_WithInvalidGuid_ReturnsNotFound()
     {
         // arrange
-        var auction = _fixture.Build<Auction>().Without(x=> x.Product).Create();
+        var auction = _fixture.Build<Auction>().Without(x => x.Product).Create();
         _repository.Setup(x => x.GetAuctionModelById(It.IsAny<Guid>())).ReturnsAsync(value: null);
-        
+
         // act
         var result = await AuctionsEndpoints.DeleteAuction(auction.Id, _repository.Object, _httpContext, _publishEndpoint.Object, _ct);
         var response = result as NotFound;
-        
+
         // assert
         Assert.IsType<NotFound>(response);
     }
-    
+
     [Fact]
     public async Task DeleteAuction_WithInvalidUser_ReturnsForbid()
     {
         // arrange
-        var auction = _fixture.Build<Auction>().Without(x=> x.Product).Create();
+        var auction = _fixture.Build<Auction>().Without(x => x.Product).Create();
         _repository.Setup(x => x.GetAuctionModelById(It.IsAny<Guid>())).ReturnsAsync(auction);
-        
+
         // act
         var result = await AuctionsEndpoints.DeleteAuction(auction.Id, _repository.Object, _httpContext, _publishEndpoint.Object, _ct);
         var response = result as ForbidHttpResult;
