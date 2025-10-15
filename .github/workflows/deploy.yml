@@ -189,6 +189,20 @@ jobs:
           /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
           /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
 
+    - name: SonarCloud Scan
+      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      uses: SonarSource/sonarcloud-github-action@master
+      with:
+        projectBaseDir: frontend/web-app
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
+        SONAR_SCANNER_OPTS: >
+          -Dsonar.projectKey="${{ matrix.service.name }}"
+          -Dsonar.organization="${{ secrets.SONAR_ORGANIZATION }}"
+          -Dsonar.sources=${{ matrix.service.path }}
+          -Dsonar.exclusions=**/node_modules/**
+
     - name: Build and Test with coverage
       if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       run: |
