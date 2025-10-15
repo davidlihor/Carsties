@@ -109,6 +109,7 @@ jobs:
 
   security-and-quality:
     runs-on: ubuntu-latest
+    needs: lint-and-test
     env: 
       continue: "false"
     strategy:
@@ -185,13 +186,14 @@ jobs:
       run: dotnet tool install --global dotnet-sonarscanner
 
     - name: Begin SonarQube analysis
-      if: matrix.service.path != 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path != 'frontend/web-app'
       run: |
         dotnet sonarscanner begin \
           /k:"${{ secrets.SONAR_PROJECT_KEY }}" \
           /o:"${{ secrets.SONAR_ORGANIZATION }}" \
           /d:sonar.host.url="${{ secrets.SONAR_URL }}" \
           /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+          /d:sonar.sources="${{ matrix.service.path }}" \
           /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
           /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
 
