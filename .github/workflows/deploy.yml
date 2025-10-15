@@ -200,7 +200,7 @@ jobs:
         SONAR_SCANNER_OPTS: >
           -Dsonar.projectKey="${{ matrix.service.name }}"
           -Dsonar.organization="${{ secrets.SONAR_ORGANIZATION }}"
-          -Dsonar.sources=${{ matrix.service.path }}
+          -Dsonar.sources=src
           -Dsonar.exclusions=**/node_modules/**
 
     - name: Build and Test with coverage
