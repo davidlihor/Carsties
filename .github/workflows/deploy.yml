@@ -114,8 +114,11 @@ jobs:
         service:
           - name: "davidlihor_Carsties_AuctionService"
             path: "src/AuctionService"
+            unit-test: "tests/AuctionService.UnitTests"
+            intg-test: "tests/AuctionService.IntegrationTests"
           - name: "davidlihor_Carsties_SearchService"
             path: "src/SearchService"
+            intg-test: "tests/SearchService.IntegrationTests"
           - name: "davidlihor_Carsties_BiddingService"
             path: "src/BiddingService"
           - name: "davidlihor_Carsties_GatewayService"
@@ -189,11 +192,17 @@ jobs:
           /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
           /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
 
-    - name: Build and Test with coverage
+    - name: Build service
       if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      run: |
-        dotnet build Carsties.sln
-        dotnet test Carsties.sln --collect:"XPlat Code Coverage" --logger trx
+      run: dotnet build ${{ matrix.service.path }}/*.csproj
+
+    - name: Run unit tests (if defined)
+      if: matrix.service.unit-test != '' && steps.changes.outputs.continue == 'true'
+      run: dotnet test ${{ matrix.service.unit-test }}/*.csproj --collect:"XPlat Code Coverage" --logger trx
+
+    - name: Run integration tests (if defined)
+      if: matrix.service.intg-test != '' && steps.changes.outputs.continue == 'true'
+      run: dotnet test ${{ matrix.service.intg-test }}/*.csproj --collect:"XPlat Code Coverage" --logger trx
 
     - name: End SonarQube analysis
       if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
