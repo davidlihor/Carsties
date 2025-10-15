@@ -201,15 +201,30 @@ jobs:
 
     - name: SonarCloud Scan (frontend)
       if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      uses: SonarSource/sonarcloud-github-action@master
+      uses: SonarSource/sonarqube-scan-action@v6
       with:
         projectBaseDir: frontend/web-app
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
-        SONAR_SCANNER_OPTS: >
-          -Dsonar.projectKey="${{ matrix.service.name }}"
-          -Dsonar.organization="${{ secrets.SONAR_ORGANIZATION }}"
+        args: >
+          -Dsonar.projectKey=${{ matrix.service.name }}
+          -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
           -Dsonar.sources=src
           -Dsonar.branch.name=main
           -Dsonar.exclusions=**/node_modules/**
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: "https://sonarcloud.io"
+
+    # - name: SonarCloud Scan (frontend)
+    #   if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+    #   uses: SonarSource/sonarcloud-github-action@master
+    #   with:
+    #     projectBaseDir: frontend/web-app
+    #   env:
+    #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    #     SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
+    #     SONAR_SCANNER_OPTS: >
+    #       -Dsonar.projectKey="${{ matrix.service.name }}"
+    #       -Dsonar.organization="${{ secrets.SONAR_ORGANIZATION }}"
+    #       -Dsonar.sources=src
+    #       -Dsonar.branch.name=main
+    #       -Dsonar.exclusions=**/node_modules/**
