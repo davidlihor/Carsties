@@ -11,8 +11,6 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
-    env: 
-      continue: "false"
     strategy:
       matrix:
         service:
@@ -36,23 +34,24 @@ jobs:
         fetch-depth: 2
 
     - name: Check Changes
+      id: changes
       run: |
         if git diff --quiet HEAD^ HEAD -- ${{matrix.service.path}}; then
           echo "No changes in ${{matrix.service.path}}"
-          echo "continue=false" >> $GITHUB_ENV
+          echo "continue=false" >> $GITHUB_OUTPUT
         else 
           echo "Changes found in ${{matrix.service.path}}"
-          echo "continue=true" >> $GITHUB_ENV
+          echo "continue=true" >> $GITHUB_OUTPUT
         fi
 
     - name: Install NodeJS
-      if: matrix.service.path == 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       uses: actions/setup-node@v4
       with:
         node-version: '22'
 
     - name: Cache npm
-      if: matrix.service.path == 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       id: npm-cache
       uses: actions/cache@v3
       with:
@@ -62,29 +61,29 @@ jobs:
           ${{ runner.os }}-npm-
 
     - name: Install dependencies (frontend)
-      if: matrix.service.path == 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       working-directory: ${{ matrix.service.path }}
       run: npm ci
 
     - name: Lint (frontend)
-      if: matrix.service.path == 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       working-directory: ${{ matrix.service.path }}
       run: npm run lint
 
     - name: Test (frontend)
-      if: matrix.service.path == 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       working-directory: ${{ matrix.service.path }}
       run: npm test
 
 
     - name: Setup .NET
-      if: matrix.service.path != 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '9.0.x' 
 
     - name: Cache NuGet
-      if: matrix.service.path != 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       id: dotnet-cache
       uses: actions/cache@v3
       with:
@@ -94,39 +93,37 @@ jobs:
           ${{ runner.os }}-nuget-
 
     - name: Restore dependencies (.NET)
-      if: matrix.service.path != 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       run: dotnet restore Carsties.sln
 
     - name: Format (.NET)
-      if: matrix.service.path != 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       run: dotnet format --verify-no-changes
     
     - name: Run Tests (.NET)
-      if: matrix.service.path != 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       run: |
         dotnet test Carsties.sln --filter Category=Unit
         dotnet test Carsties.sln --filter Category=Integration
 
-  security-and-quality:
+  quality:
     runs-on: ubuntu-latest
     needs: lint-and-test
-    env: 
-      continue: "false"
     strategy:
       matrix:
         service:
-          - name: "davidlihor/auction-svc"
+          - name: "davidlihor_Carsties_AuctionService"
             path: "src/AuctionService"
-          - name: "davidlihor/search-svc"
+          - name: "davidlihor_Carsties_SearchService"
             path: "src/SearchService"
-          - name: "davidlihor/bid-svc"
+          - name: "davidlihor_Carsties_BiddingService"
             path: "src/BiddingService"
-          - name: "davidlihor/gateway-svc"
+          - name: "davidlihor_Carsties_GatewayService"
             path: "src/GatewayService"  
-          - name: "davidlihor/notification-svc"
+          - name: "davidlihor_Carsties_NotificationService"
             path: "src/NotificationService"    
-          - name: "davidlihor/web-app"
-            path: "frontend/web-app"          
+          - name: "davidlihor_Carsties_WebApp"
+            path: "frontend/web-app"
 
     steps:
     - name: Checkout code
@@ -135,23 +132,24 @@ jobs:
         fetch-depth: 2
 
     - name: Check Changes
+      id: changes
       run: |
         if git diff --quiet HEAD^ HEAD -- ${{matrix.service.path}}; then
           echo "No changes in ${{matrix.service.path}}"
-          echo "continue=false" >> $GITHUB_ENV
+          echo "continue=false" >> $GITHUB_OUTPUT
         else 
           echo "Changes found in ${{matrix.service.path}}"
-          echo "continue=true" >> $GITHUB_ENV
+          echo "continue=true" >> $GITHUB_OUTPUT
         fi
 
     - name: Setup .NET
-      if: matrix.service.path != 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '9.0.x'
 
     - name: Cache NuGet
-      if: matrix.service.path != 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       uses: actions/cache@v3
       with:
         path: ~/.nuget/packages
@@ -159,18 +157,14 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-nuget-
 
-    - name: Check if npm cache was hit
-      if: matrix.service.path != 'frontend/web-app' && env.continue == 'true'
-      run: echo "Cache hit? ${{ steps.npm-cache.outputs.cache-hit }}"
-
     - name: Setup NodeJS
-      if: matrix.service.path == 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       uses: actions/setup-node@v4
       with:
         node-version: '22'
 
     - name: Cache npm
-      if: matrix.service.path == 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       uses: actions/cache@v3
       with:
         path: ~/.npm
@@ -178,31 +172,29 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-npm-
 
-    - name: Check if npm cache was hit
-      if: matrix.service.path == 'frontend/web-app' && env.continue == 'true'
-      run: echo "Cache hit? ${{ steps.npm-cache.outputs.cache-hit }}"
-
     - name: Install SonarScanner for .NET
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       run: dotnet tool install --global dotnet-sonarscanner
 
     - name: Begin SonarQube analysis
-      if: matrix.service.path != 'frontend/web-app'
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       run: |
         dotnet sonarscanner begin \
-          /k:"${{ secrets.SONAR_PROJECT_KEY }}" \
+          /k:"${{ matrix.service.name }}" \
           /o:"${{ secrets.SONAR_ORGANIZATION }}" \
           /d:sonar.host.url="${{ secrets.SONAR_URL }}" \
           /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
           /d:sonar.sources="${{ matrix.service.path }}" \
+          /d:sonar.exclusions="**/bin/**,**/obj/**" \
           /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
           /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
 
     - name: Build and Test with coverage
-      if: matrix.service.path != 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       run: |
         dotnet build Carsties.sln
         dotnet test Carsties.sln --collect:"XPlat Code Coverage" --logger trx
 
     - name: End SonarQube analysis
-      if: matrix.service.path != 'frontend/web-app' && env.continue == 'true'
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
