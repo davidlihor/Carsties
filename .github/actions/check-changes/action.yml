@@ -1,0 +1,24 @@
+name: "Check Changes"
+description: "Check if there are changes in a given path"
+inputs:
+  path:
+    description: "Path to check for changes"
+    required: true
+outputs:
+  continue:
+    description: "true if changes found, false otherwise"
+    value: ${{ steps.check.outputs.continue }}
+runs:
+  using: "composite"
+  steps:
+    - name: Check Changes
+      id: check
+      run: |
+        if git diff --quiet HEAD^ HEAD -- ${{ inputs.path }}; then
+          echo "No changes in ${{ inputs.path }}"
+          echo "continue=false" >> $GITHUB_OUTPUT
+        else
+          echo "Changes found in ${{ inputs.path }}"
+          echo "continue=true" >> $GITHUB_OUTPUT
+        fi
+      shell: bash

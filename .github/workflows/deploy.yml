@@ -7,7 +7,6 @@ on:
   pull_request:
     branches: 
       - main
-
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
@@ -27,8 +26,7 @@ jobs:
           - name: "davidlihor/notification-svc"
             path: "src/NotificationService"    
           - name: "davidlihor/web-app"
-            path: "frontend/web-app"          
-
+            path: "frontend/web-app"
     steps:
     - name: Checkout code
       uses: actions/checkout@v5
@@ -37,14 +35,9 @@ jobs:
 
     - name: Check Changes
       id: changes
-      run: |
-        if git diff --quiet HEAD^ HEAD -- ${{matrix.service.path}}; then
-          echo "No changes in ${{matrix.service.path}}"
-          echo "continue=false" >> $GITHUB_OUTPUT
-        else 
-          echo "Changes found in ${{matrix.service.path}}"
-          echo "continue=true" >> $GITHUB_OUTPUT
-        fi
+      uses: ./.github/actions/check-changes
+      with:
+        path: ${{ matrix.service.path }}
 
     - name: Setup Node (frontend)
       if: env.is-frontend == 'true' && steps.changes.outputs.continue == 'true'
@@ -92,6 +85,8 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     needs: lint-and-test
+    env:
+      is-frontend: ${{ matrix.service.path == 'frontend/web-app' }}
     strategy:
       matrix:
         service:
@@ -119,55 +114,32 @@ jobs:
 
     - name: Check Changes
       id: changes
-      run: |
-        if git diff --quiet HEAD^ HEAD -- ${{matrix.service.path}}; then
-          echo "No changes in ${{matrix.service.path}}"
-          echo "continue=false" >> $GITHUB_OUTPUT
-        else 
-          echo "Changes found in ${{matrix.service.path}}"
-          echo "continue=true" >> $GITHUB_OUTPUT
-        fi
+      uses: ./.github/actions/check-changes
+      with:
+        path: ${{ matrix.service.path }}
+
+    - name: Setup Node (frontend)
+      if: env.is-frontend == 'true' && steps.changes.outputs.continue == 'true'
+      uses: ./.github/actions/setup-node
+      with:
+        node-version: 20
+        lockfile: frontend/web-app/package-lock.json
 
     - name: Setup .NET
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      uses: actions/setup-dotnet@v4
+      if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
+      uses: ./.github/actions/setup-dotnet
       with:
         dotnet-version: '9.0.x'
+        csprojfile: '**/*.csproj'
 
-    - name: Cache NuGet
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      uses: actions/cache@v3
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
-
-    - name: Setup NodeJS
-      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22
-
-    - name: Cache npm
-      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-npm-${{ hashFiles('frontend/web-app/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-npm-
-
-    - name: Install SonarScanner for .NET
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      run: dotnet tool install --global dotnet-sonarscanner
-
-    - name: Install ReportGenerator
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      run: dotnet tool install --global dotnet-reportgenerator-globaltool
+    - name: Install SonarScanner && ReportGenerator for .NET 
+      if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
+      run: |
+        dotnet tool install --global dotnet-sonarscanner
+        dotnet tool install --global dotnet-reportgenerator-globaltool
 
     - name: Begin SonarQube analysis
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
       run: |
         dotnet sonarscanner begin \
           /k:"${{ matrix.service.name }}" \
@@ -180,7 +152,7 @@ jobs:
           /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
 
     - name: Build service
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
       run: dotnet build ${{ matrix.service.path }}/*.csproj
 
     - name: Run unit tests (if defined)
@@ -199,11 +171,11 @@ jobs:
           -reporttypes:opencover
 
     - name: End SonarQube analysis
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
       run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
     - name: SonarCloud Scan (frontend)
-      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      if: env.is-frontend == 'true' && steps.changes.outputs.continue == 'true'
       uses: SonarSource/sonarqube-scan-action@v6
       with:
         projectBaseDir: frontend/web-app
