@@ -11,6 +11,8 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    env:
+      is-frontend: ${{ matrix.service.path == 'frontend/web-app' }}
     strategy:
       matrix:
         service:
@@ -44,64 +46,45 @@ jobs:
           echo "continue=true" >> $GITHUB_OUTPUT
         fi
 
-    - name: Install NodeJS
-      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      uses: actions/setup-node@v4
+    - name: Setup Node (frontend)
+      if: env.is-frontend == 'true' && steps.changes.outputs.continue == 'true'
+      uses: ./.github/actions/setup-node
       with:
-        node-version: 22
-
-    - name: Cache npm
-      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      id: npm-cache
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-npm-${{ hashFiles('frontend/web-app/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-npm-
+        node-version: 20
+        lockfile: frontend/web-app/package-lock.json
 
     - name: Install dependencies (frontend)
-      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      if: env.is-frontend == 'true' && steps.changes.outputs.continue == 'true'
       working-directory: ${{ matrix.service.path }}
       run: npm ci
 
     - name: Lint (frontend)
-      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      if: env.is-frontend == 'true' && steps.changes.outputs.continue == 'true'
       working-directory: ${{ matrix.service.path }}
       run: npm run lint
 
     - name: Test (frontend)
-      if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      if: env.is-frontend == 'true' && steps.changes.outputs.continue == 'true'
       working-directory: ${{ matrix.service.path }}
       run: npm test
 
-
     - name: Setup .NET
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      uses: actions/setup-dotnet@v4
+      if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
+      uses: ./.github/actions/setup-dotnet
       with:
-        dotnet-version: '9.0.x' 
-
-    - name: Cache NuGet
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      id: dotnet-cache
-      uses: actions/cache@v3
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
+        dotnet-version: '9.0.x'
+        csprojfile: '**/*.csproj'
 
     - name: Restore dependencies (.NET)
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
       run: dotnet restore Carsties.sln
 
     - name: Format (.NET)
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
       run: dotnet format --verify-no-changes
     
     - name: Run Tests (.NET)
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
       run: |
         dotnet test Carsties.sln --filter Category=Unit
         dotnet test Carsties.sln --filter Category=Integration
@@ -179,6 +162,10 @@ jobs:
       if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       run: dotnet tool install --global dotnet-sonarscanner
 
+    - name: Install ReportGenerator
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
     - name: Begin SonarQube analysis
       if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       run: |
@@ -203,6 +190,13 @@ jobs:
     - name: Run integration tests (if defined)
       if: matrix.service.intg-test != '' && steps.changes.outputs.continue == 'true'
       run: dotnet test ${{ matrix.service.intg-test }}/*.csproj --collect:"XPlat Code Coverage" --logger trx
+
+    - name: Convert coverage to OpenCover
+      run: |
+        reportgenerator \
+          -reports:**/coverage.cobertura.xml \
+          -targetdir:coverage \
+          -reporttypes:opencover
 
     - name: End SonarQube analysis
       if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'

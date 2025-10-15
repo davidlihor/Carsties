@@ -1,0 +1,25 @@
+name: "Setup .NET with cache"
+description: "Install .NET and configure npm cache"
+inputs:
+  dotnet-version:
+    description: ".NET version to install"
+    required: true
+  csprojfile:
+    description: "Path to .csproj files"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ inputs.dotnet-version }}
+
+    - name: Cache NuGet
+      id: dotnet-cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles(inputs.csprojfile) }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-

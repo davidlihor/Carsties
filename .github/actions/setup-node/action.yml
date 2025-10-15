@@ -1,0 +1,25 @@
+name: "Setup Node with cache"
+description: "Install Node.js and configure npm cache"
+inputs:
+  node-version:
+    description: "Node.js version to install"
+    required: true
+  lockfile:
+    description: "Path to package-lock.json"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Setup NodeJS
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Cache npm
+      id: npm-cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-npm-${{ hashFiles(inputs.lockfile) }}
+        restore-keys: |
+          ${{ runner.os }}-npm-
