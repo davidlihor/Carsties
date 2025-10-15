@@ -189,7 +189,17 @@ jobs:
           /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
           /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
 
-    - name: SonarCloud Scan
+    - name: End SonarQube analysis
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+
+    - name: Build and Test with coverage
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      run: |
+        dotnet build Carsties.sln
+        dotnet test Carsties.sln --collect:"XPlat Code Coverage" --logger trx
+
+    - name: SonarCloud Scan (frontend)
       if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       uses: SonarSource/sonarcloud-github-action@master
       with:
@@ -201,14 +211,5 @@ jobs:
           -Dsonar.projectKey="${{ matrix.service.name }}"
           -Dsonar.organization="${{ secrets.SONAR_ORGANIZATION }}"
           -Dsonar.sources=src
+          -Dsonar.branch.name=main
           -Dsonar.exclusions=**/node_modules/**
-
-    - name: Build and Test with coverage
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      run: |
-        dotnet build Carsties.sln
-        dotnet test Carsties.sln --collect:"XPlat Code Coverage" --logger trx
-
-    - name: End SonarQube analysis
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
