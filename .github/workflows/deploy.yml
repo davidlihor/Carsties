@@ -48,7 +48,7 @@ jobs:
       if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       uses: actions/setup-node@v4
       with:
-        node-version: '22'
+        node-version: 22
 
     - name: Cache npm
       if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
@@ -161,7 +161,7 @@ jobs:
       if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       uses: actions/setup-node@v4
       with:
-        node-version: '22'
+        node-version: 22
 
     - name: Cache npm
       if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
