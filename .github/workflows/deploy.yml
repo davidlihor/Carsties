@@ -189,15 +189,15 @@ jobs:
           /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
           /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
 
-    - name: End SonarQube analysis
-      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
-      run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-
     - name: Build and Test with coverage
       if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
       run: |
         dotnet build Carsties.sln
         dotnet test Carsties.sln --collect:"XPlat Code Coverage" --logger trx
+
+    - name: End SonarQube analysis
+      if: matrix.service.path != 'frontend/web-app' && steps.changes.outputs.continue == 'true'
+      run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
     - name: SonarCloud Scan (frontend)
       if: matrix.service.path == 'frontend/web-app' && steps.changes.outputs.continue == 'true'
