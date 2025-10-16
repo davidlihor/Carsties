@@ -132,7 +132,7 @@ jobs:
         dotnet-version: '9.0.x'
         csprojfile: '**/*.csproj'
 
-    - name: Install SonarScanner && ReportGenerator for .NET 
+    - name: Install SonarScanner & ReportGenerator for .NET 
       if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
       run: |
         dotnet tool install --global dotnet-sonarscanner
