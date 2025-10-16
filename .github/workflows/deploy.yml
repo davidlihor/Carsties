@@ -132,6 +132,10 @@ jobs:
         dotnet-version: '9.0.x'
         csprojfile: '**/*.csproj'
 
+    - name: Restore dependencies (.NET)
+      if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
+      run: dotnet restore Carsties.sln
+
     - name: Install SonarScanner & ReportGenerator for .NET 
       if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
       run: |
