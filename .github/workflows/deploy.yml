@@ -170,10 +170,11 @@ jobs:
     - name: Convert coverage to OpenCover
       if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
       run: |
-        reportgenerator \
-          -reports:**/coverage.cobertura.xml \
-          -targetdir:coverage \
-          -reporttypes:opencover
+        if ls **/coverage.cobertura.xml 1> /dev/null 2>&1; then
+          reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage -reporttypes:opencover
+        else
+          echo "No coverage reports found, skipping conversion"
+        fi
 
     - name: End SonarQube analysis
       if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
