@@ -191,9 +191,11 @@ jobs:
         SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
 
     - name: npm audit (SCA)
+      if: env.is-frontend == 'true' && steps.changes.outputs.continue == 'true'
       run: npm audit --audit-level=high --prefix frontend/web-app
 
     - name: Check vulnerable .NET packages
+      if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
       run: dotnet list Carsties.sln package --vulnerable
 
     - name: Run Gitleaks (safe print)
