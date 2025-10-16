@@ -1,0 +1,15 @@
+[extend]
+useDefault = true
+
+[allowlist]
+paths = [
+  '''node_modules''',
+  '''dist''',
+  '''.next''',
+  '''bin''',
+  '''obj''',
+  '''keycloak.json''',
+  '''infra''',
+  '''compose.yml''',
+  '''README.md'''
+]
