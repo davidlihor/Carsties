@@ -203,11 +203,13 @@ jobs:
       run: dotnet list Carsties.sln package --vulnerable
 
     - name: Install Gitleaks
+      if: steps.changes.outputs.continue == 'true'
       uses: ./.github/actions/setup-gitleaks
       with:
         version: "8.20.1"
 
     - name: Run Gitleaks (safe print)
+      if: steps.changes.outputs.continue == 'true'
       run: |
         gitleaks detect \
           --source . \
@@ -275,10 +277,12 @@ jobs:
         context: .
         file: ${{matrix.service.path}}/Dockerfile
         push: false
+        load: true
         tags: |
             ${{matrix.service.name}}:candidate
 
     - name: Run Trivy vulnerability scanner
+      if: steps.changes.outputs.continue == 'true'
       uses: aquasecurity/trivy-action@0.20.0
       with:
         image-ref: ${{ matrix.service.name }}:candidate
