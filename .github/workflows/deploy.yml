@@ -199,14 +199,11 @@ jobs:
       run: dotnet list Carsties.sln package --vulnerable
 
     - name: Install Gitleaks
-      if: env.is-frontend != 'true' && steps.changes.outputs.continue == 'true'
-      run: |
-        curl -LO https://github.com/gitleaks/gitleaks/releases/download/v8.20.1/gitleaks_8.20.1_linux_x64.tar.gz
-        tar -zxvf gitleaks_8.20.1_linux_x64.tar.gz
-        sudo mv gitleaks /usr/local/bin/
+      uses: ./.github/actions/setup-gitleaks
+      with:
+        version: "8.20.1"
 
     - name: Run Gitleaks (safe print)
-      if: env.is-frontend == 'true' && steps.changes.outputs.continue == 'true'
       run: |
         gitleaks detect \
           --source . \
