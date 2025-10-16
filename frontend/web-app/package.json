@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "" 
+    "test": ""
   },
   "dependencies": {
     "@microsoft/signalr": "^8.0.7",
