@@ -12,8 +12,8 @@ spec:
   resources:
     requests:
       storage: {{ .size }}
-  {{- if .storageClass }}
-  storageClassName: {{ .storageClass }}
+  {{- if or .storageClass $.Values.global.storageClass }}
+  storageClassName: {{ default $.Values.global.storageClass .storageClass }}
   {{- end }}
   volumeMode: Filesystem
 {{- end }}

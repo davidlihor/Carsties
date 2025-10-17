@@ -3,3 +3,4 @@ global:
   namespace: default
   monitoring: false
   registry: null
+  storageClass: gp2

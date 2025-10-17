@@ -116,6 +116,7 @@ deployments:
         protocol: TCP
 
   - name: webapp
+    monitoring: true
     config:
       AUTH_URL: https://app.carsties.local
       AUTH_URL_INTERNAL: http://webapp-clusterip:3000
@@ -139,10 +140,9 @@ deployments:
       - name: postgres
         size: 200Mi
         accessMode: ReadWriteOnce
-        storageClass: standard
     config:
       POSTGRES_DB: keycloak
-      PGDATA: /postgres-data
+      PGDATA: /postgres-data/pgdata
     secrets:
       POSTGRES_PASSWORD: postgresSecretPw
     ports:
@@ -161,7 +161,6 @@ deployments:
       - name: mongodb
         size: 200Mi
         accessMode: ReadWriteOnce
-        storageClass: standard
     secrets:
       MONGO_INITDB_ROOT_USERNAME: mongoUn
       MONGO_INITDB_ROOT_PASSWORD: mongoSecretPw
@@ -181,7 +180,6 @@ deployments:
       - name: rabbitmq
         size: 200Mi
         accessMode: ReadWriteOnce
-        storageClass: standard
     secrets:
       RABBITMQ_DEFAULT_USER: rabbitUn
       RABBITMQ_DEFAULT_PASS: rabbitSecretPw

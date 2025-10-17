@@ -11,7 +11,16 @@ const nextConfig: NextConfig = {
       { protocol: "http", hostname: "*" }
     ]
   },
-  output: "standalone"
+  output: "standalone",
+
+  async rewrites() {
+    return [
+      {
+        source: "/metrics",
+        destination: "/api/metrics"
+      }
+    ]
+  }
 };
 
 export default nextConfig;
