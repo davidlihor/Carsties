@@ -14,7 +14,6 @@ spec:
     helm:
       values: |
         clusterName: carsties-eks-dev
-        vpcId: vpc-0498df6a7aac7859f
         serviceAccount:
           create: false
           name: aws-load-balancer-controller
