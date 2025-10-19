@@ -8,9 +8,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/aws/eks-charts
-    path: stable/aws-load-balancer-controller/crds
-    targetRevision: master
+    repoURL: https://github.com/kubernetes-sigs/aws-load-balancer-controller
+    path: config/crd
+    targetRevision: v2.14.1
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system

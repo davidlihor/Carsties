@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/davidlihor/StackNotes-Deployment
+    repoURL: https://github.com/davidlihor/Carsties
     targetRevision: HEAD
     path: argocd/apps
     directory:
