@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: https://github.com/davidlihor/Carsties
     targetRevision: HEAD
-    path: argocd/apps/infrastructure/eso-configs
+    path: infra/eso
   destination:
     server: https://kubernetes.default.svc
     namespace: vault
