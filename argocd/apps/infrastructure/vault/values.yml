@@ -1,0 +1,34 @@
+server:
+  serviceAccount:
+    create: false
+    name: vault
+  dataStorage:
+    enabled: true
+    size: 1Gi
+    storageClass: gp2
+  ha:
+    enabled: true
+    replicas: 3
+    raft:
+      enabled: true
+      setNodeId: true
+      storageClass: gp2
+      config: |
+        storage "raft" {
+          path    = "/vault/data"
+        }
+        listener "tcp" {
+          address     = "[::]:8200"
+          tls_disable = 1
+        }
+        seal "awskms" {
+          region     = "us-east-1"
+          kms_key_id = "${VAULT_AWSKMS_SEAL_KEY_ID}"
+        }
+        service_registration "kubernetes" {}
+  extraEnvironmentVars:
+    VAULT_AWSKMS_SEAL_KEY_ID:
+      valueFrom:
+        secretKeyRef:
+          name: vault-kms-arn
+          key: arn
