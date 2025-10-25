@@ -7,13 +7,20 @@ metadata:
     argocd.argoproj.io/sync-wave: "4"
 spec:
   project: default
-  source:
-    repoURL: https://helm.releases.hashicorp.com
-    chart: vault
-    targetRevision: 0.31.0
+  sources:
+      - repoURL: https://helm.releases.hashicorp.com
+        chart: vault
+        targetRevision: 0.31.0
+        helm:
+          valueFiles: []
+      - repoURL: https://github.com/davidlihor/Carsties
+        targetRevision: HEAD
+        path: argocd/apps/infrastructure/vault
+        name: custom-values
+  template:
     helm:
       valueFiles:
-        - argocd/apps/infrastructure/vault/values.yml
+        - $custom-values/values.yml
   destination:
     server: https://kubernetes.default.svc
     namespace: vault
