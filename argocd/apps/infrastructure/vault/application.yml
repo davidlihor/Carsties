@@ -14,17 +14,39 @@ spec:
     helm:
       values: |
         server:
+          serviceAccount:
+            create: false
+            name: vault
           dataStorage:
             enabled: true
             size: 1Gi
-            storageClass: gp3
+            storageClass: gp2
           ha:
             enabled: true
             replicas: 3
             raft:
               enabled: true
-              storageClass: gp3
-              size: 1Gi
+              setNodeId: true
+              storageClass: gp2
+              config: |
+                storage "raft" {
+                  path    = "/vault/data"
+                }
+                listener "tcp" {
+                  address     = "[::]:8200"
+                  tls_disable = 1
+                }
+                service_registration "kubernetes" {}
+          extraEnvironmentVars: {}
+          seal:
+            awskms:
+              enabled: true
+              region: us-east-1
+              kmsKeyId:
+                secret:
+                  name: vault-kms-arn
+                  key: arn
+
   destination:
     server: https://kubernetes.default.svc
     namespace: vault
