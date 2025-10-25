@@ -21,14 +21,13 @@ server:
           address     = "[::]:8200"
           tls_disable = 1
         }
-        seal "awskms" {
-          region     = "us-east-1"
-          kms_key_id = "${VAULT_AWSKMS_SEAL_KEY_ID}"
-        }
         service_registration "kubernetes" {}
-  extraEnvironmentVars:
-    VAULT_AWSKMS_SEAL_KEY_ID:
-      valueFrom:
-        secretKeyRef:
+  extraEnvironmentVars: {}
+  seal:
+    awskms:
+      enabled: true
+      region: us-east-1
+      kmsKeyId:
+        secret:
           name: vault-kms-arn
           key: arn
