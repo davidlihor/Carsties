@@ -19,6 +19,14 @@ spec:
     targetRevision: 0.31.0
     helm:
       values: |
+        global:
+          enabled: true
+          namespace: ""
+          tlsDisable: true
+          externalVaultAddr: "http://vault.vault.svc:8200"
+          openshift: false
+          psp:
+            enable: false
         server:
           serviceAccount:
             create: false
@@ -46,6 +54,7 @@ spec:
                   region     = "us-east-1"
                 }
                 service_registration "kubernetes" {}
+                ui = true
           extraSecretEnvironmentVars:
               - envName: VAULT_AWSKMS_SEAL_KEY_ID
                 secretName: vault-kms-arn-secret
