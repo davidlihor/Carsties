@@ -38,18 +38,12 @@ spec:
                 }
                 seal "awskms" {
                   region     = "us-east-1"
-                  kms_key_id = "${VAULT_KMS_ARN}"
                 }
                 service_registration "kubernetes" {}
           extraSecretEnvironmentVars:
-            - envName: VAULT_KMS_ARN
-              secretName: vault-kms-arn
-              secretKey: VAULT_KMS_ARN
-          extraConfig: |
-            seal "awskms" {
-              region     = "us-east-1"
-              kms_key_id = "${VAULT_KMS_ARN}"
-            }
+              - envName: VAULT_AWSKMS_SEAL_KEY_ID
+                secretName: vault-kms-arn-secret
+                secretKey: kms_key_id
   destination:
     server: https://kubernetes.default.svc
     namespace: vault
